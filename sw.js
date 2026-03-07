@@ -1,92 +1,67 @@
 /* ═══════════════════════════════════════════════════
    PAWPLAN · sw.js
-   Service Worker — offline caching & PWA support
+   Service Worker — network-first so updates are instant
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v3';
+const CACHE_NAME = 'pawplan-v4';
 
-// Files to cache for offline use
-const STATIC_ASSETS = [
-  '/pawplan-app/',
-  '/pawplan-app/index.html',
-  '/pawplan-app/css/styles.css',
-  '/pawplan-app/js/schedule.js',
-  '/pawplan-app/js/db.js',
-  '/pawplan-app/js/ui.js',
-  '/pawplan-app/js/app.js',
-  '/pawplan-app/manifest.json',
-];
-
-// ── Install: cache static assets ─────────────────
+// ── Install: skip waiting so new SW activates immediately ─
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
-// ── Activate: clean up old caches ────────────────
+// ── Activate: clear ALL old caches, claim clients ─────────
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          })
-      )
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// ── Fetch: cache-first for static, network-first for Supabase ──
+// ── Fetch strategy ─────────────────────────────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Always go network-first for Supabase API calls
+  // 1. Supabase API — always network only, never cache
   if (url.hostname.includes('supabase.co')) {
     event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(
+          JSON.stringify({ error: 'offline' }),
+          { headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+    );
+    return;
+  }
+
+  // 2. App shell (HTML, JS, CSS, assets) — network-first, cache as fallback
+  //    This means updates go live instantly. Cache only used when offline.
+  if (url.hostname === self.location.hostname) {
+    event.respondWith(
       fetch(event.request)
+        .then(response => {
+          // Store fresh copy in cache for offline use
+          if (response.ok && event.request.method === 'GET') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
         .catch(() => {
-          // If offline, return a helpful JSON error
-          return new Response(
-            JSON.stringify({ error: 'offline', message: 'No internet connection' }),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
+          // Offline — serve from cache
+          return caches.match(event.request);
         })
     );
     return;
   }
 
-  // Cache-first for Google Fonts
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
-  // Cache-first for everything else (app shell)
+  // 3. Google Fonts & CDN — cache-first (these never change)
   event.respondWith(
     caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        // Cache successful GET responses
-        if (event.request.method === 'GET' && response.status === 200) {
+      return cached || fetch(event.request).then(response => {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
