@@ -54,11 +54,12 @@ const UI = (() => {
 
   // ── Schedule ──────────────────────────────────────
 
-  function renderSchedule(dateStr, tasksMap) {
-    const items = Schedule.getItems(dateStr);
-    const done  = items.filter(i => tasksMap[i.id]).length;
-    const total = items.length;
-    const pct   = total ? Math.round((done / total) * 100) : 0;
+  function renderSchedule(dateStr, tasksMap, customTasks) {
+    const custom = customTasks || [];
+    const items  = Schedule.getMergedItems(dateStr, custom);
+    const done   = items.filter(i => tasksMap[i.id]).length;
+    const total  = items.length;
+    const pct    = total ? Math.round((done / total) * 100) : 0;
 
     document.getElementById('progress-fill').style.width = pct + '%';
     document.getElementById('progress-label').textContent =
@@ -74,7 +75,8 @@ const UI = (() => {
         <div class="section-label">${section.label}</div>`;
 
       sectionItems.forEach(item => {
-        const completed = !!tasksMap[item.id];
+        const completed  = !!tasksMap[item.id];
+        const isCustom   = !!(item._isNew || item._override);
         html += `
           <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}" id="item-${item.id}">
             <div class="schedule-item-inner" onclick="App.toggleTask('${item.id}')">
@@ -82,10 +84,14 @@ const UI = (() => {
               <div class="item-content">
                 <div class="item-time">${escHtml(item.time)}</div>
                 <div class="item-title">${escHtml(item.title)}</div>
-                <div class="item-desc">${escHtml(item.desc)}</div>
+                <div class="item-desc">${escHtml(item.desc || '')}</div>
                 ${badgeHtml(item.badge)}
               </div>
-              <div class="item-emoji">${item.emoji}</div>
+              <div class="item-emoji">${item.emoji || '📌'}</div>
+            </div>
+            <div class="item-actions">
+              <button class="item-edit-btn" onclick="App.openTaskEditor('${item.id}')" title="Edit task">✏️</button>
+              ${isCustom ? `<button class="item-delete-btn" onclick="App.deleteCustomTask('${item.id}')" title="Delete task">🗑️</button>` : ''}
             </div>
           </div>`;
       });
@@ -222,6 +228,38 @@ const UI = (() => {
     el.classList.toggle('on');
   }
 
+  // ── Task editor modal ─────────────────────────────
+
+  function openTaskEditor(task) {
+    const modal = document.getElementById('task-editor-modal');
+    const isNew = !task || task._new;
+
+    document.getElementById('task-editor-title').textContent = isNew ? 'Add Task' : 'Edit Task';
+    document.getElementById('task-editor-time').value  = task ? task.time  : '';
+    document.getElementById('task-editor-label').value = task ? task.title : '';
+    document.getElementById('task-editor-desc').value  = task ? (task.desc || '') : '';
+    document.getElementById('task-editor-id').value    = task ? task.id    : '';
+
+    // Type selector
+    const typeSelect = document.getElementById('task-editor-type');
+    typeSelect.value = task ? (task.type || 'nova') : 'nova';
+
+    // Show/hide delete button — only for new custom tasks being edited
+    const deleteBtn = document.getElementById('task-editor-delete');
+    if (deleteBtn) deleteBtn.style.display = (task && (task._isNew || task._override)) ? 'block' : 'none';
+
+    modal.classList.add('open');
+    setTimeout(() => document.getElementById('task-editor-time').focus(), 300);
+  }
+
+  function closeTaskEditor() {
+    document.getElementById('task-editor-modal').classList.remove('open');
+  }
+
+  function handleTaskEditorOverlay(event) {
+    if (event.target === event.currentTarget) closeTaskEditor();
+  }
+
   // ── Modal ─────────────────────────────────────────
 
   function openModal() {
@@ -255,7 +293,11 @@ const UI = (() => {
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('settings-name').textContent = username;
-    document.getElementById('fab').classList.remove('hidden');
+    const fabGroup = document.getElementById('fab-group');
+    if (fabGroup) fabGroup.classList.remove('hidden');
+    // legacy fallback
+    const fab = document.getElementById('fab');
+    if (fab) fab.classList.remove('hidden');
   }
 
   // ── Input helpers ─────────────────────────────────
@@ -285,6 +327,9 @@ const UI = (() => {
     openModal,
     closeModal,
     handleModalOverlayClick,
+    openTaskEditor,
+    closeTaskEditor,
+    handleTaskEditorOverlay,
     hideLoading,
     showSetup,
     showApp,

@@ -198,7 +198,10 @@
   <!-- ═══════════════════════════════════════════
        NOTE MODAL (FAB)
   ════════════════════════════════════════════ -->
-  <button class="fab" id="fab" onclick="UI.openModal()" aria-label="Add note">✏️</button>
+  <div class="fab-group" id="fab-group">
+    <button class="fab fab-note" id="fab" onclick="UI.openModal()" aria-label="Add note">✏️</button>
+    <button class="fab fab-task" onclick="App.openNewTaskEditor()" aria-label="Add task">＋</button>
+  </div>
 
   <div class="modal-overlay" id="note-modal" onclick="UI.handleModalOverlayClick(event)">
     <div class="modal">
@@ -207,6 +210,38 @@
       <p class="modal-desc">Leave a note for your partner about today — Nova's behaviour, wins, anything important.</p>
       <textarea class="note-textarea" id="modal-note-text" placeholder="e.g. Nova settled brilliantly during lunch chat today 🎉 Used the frozen Kong trick!"></textarea>
       <button class="btn-primary" onclick="App.addNote('modal')">Save Note</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TASK EDITOR MODAL
+  ════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="task-editor-modal" onclick="UI.handleTaskEditorOverlay(event)">
+    <div class="modal modal-task-editor">
+      <div class="modal-handle"></div>
+      <h2 class="modal-title" id="task-editor-title">Edit Task</h2>
+      <input type="hidden" id="task-editor-id" />
+
+      <label class="field-label">Time <span class="field-hint">e.g. 9:00 AM or 1:30–2:00 PM</span></label>
+      <input type="text" class="field-input" id="task-editor-time" placeholder="9:00 AM" />
+
+      <label class="field-label">Task title</label>
+      <input type="text" class="field-input" id="task-editor-label" placeholder="e.g. Nova's potty break" />
+
+      <label class="field-label">Description <span class="field-hint">optional</span></label>
+      <textarea class="field-input field-textarea" id="task-editor-desc" placeholder="Any extra detail..."></textarea>
+
+      <label class="field-label">Type</label>
+      <select class="field-input field-select" id="task-editor-type">
+        <option value="nova">🐕 Nova</option>
+        <option value="feeding">🍗 Feeding</option>
+        <option value="work">💻 Work</option>
+        <option value="break">🌿 Break</option>
+        <option value="school">🎒 School</option>
+      </select>
+
+      <button class="btn-primary" onclick="App.saveTaskEdit()">Save Task</button>
+      <button class="btn-danger" id="task-editor-delete" onclick="App.deleteCustomTask(document.getElementById('task-editor-id').value)" style="display:none;margin-top:0.5rem;">Delete Task</button>
     </div>
   </div>
 

@@ -346,6 +346,25 @@ const Schedule = (() => {
     },
   ];
 
+  // ── Time sorting helper ───────────────────────────
+
+  function parseTimeToMinutes(timeStr) {
+    // Handles "5:00 AM", "11:30 AM – 12:00 PM", "3:30–5:00 PM" etc.
+    // We only need the START time for sorting
+    const clean = timeStr.split(/[–-]/)[0].trim();
+    const m = clean.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!m) return 0;
+    let h = parseInt(m[1]), min = parseInt(m[2]);
+    const ampm = m[3].toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+
+  function sortByTime(items) {
+    return [...items].sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
+  }
+
   // ── Public API ─────────────────────────────────────
 
   function getItems(dateStr) {
@@ -357,8 +376,24 @@ const Schedule = (() => {
     ];
   }
 
+  // Returns items merged with custom/override tasks, sorted by time
+  function getMergedItems(dateStr, customTasks) {
+    const base = getItems(dateStr);
+    const overrideIds = new Set(customTasks.filter(t => t._override).map(t => t.id));
+
+    // Remove built-in items that have been overridden
+    const filtered = base.filter(item => !overrideIds.has(item.id));
+
+    // Add custom + override tasks
+    const merged = [...filtered, ...customTasks];
+    return sortByTime(merged);
+  }
+
   return {
     getItems,
+    getMergedItems,
+    sortByTime,
+    parseTimeToMinutes,
     getDayNumber,
     formatDateDisplay,
     formatNoteTime,

@@ -127,6 +127,87 @@ const DB = (() => {
     }
   }
 
+  // ── Save a custom / edited task ──────────────────
+  // type = 'custom_task' for new, 'task_override' for edits to built-ins
+
+  async function saveCustomTask(dateStr, task) {
+    if (!client) return task;
+    try {
+      // Check if an override/custom already exists for this item_id + date
+      const { data } = await client
+        .from('pawplan_data')
+        .select('id')
+        .eq('date', dateStr)
+        .in('type', ['custom_task', 'task_override'])
+        .eq('item_id', task.id)
+        .maybeSingle();
+
+      const payload = {
+        date: dateStr,
+        type: task._isNew ? 'custom_task' : 'task_override',
+        item_id: task.id,
+        content: JSON.stringify({ time: task.time, title: task.title, desc: task.desc, emoji: task.emoji, taskType: task.type, badge: task.badge || null }),
+        author: username,
+        completed: false,
+      };
+
+      if (data) {
+        await client.from('pawplan_data').update(payload).eq('id', data.id);
+      } else {
+        await client.from('pawplan_data').insert(payload);
+      }
+    } catch (e) {
+      console.warn('[DB] saveCustomTask error:', e.message);
+    }
+    return task;
+  }
+
+  // ── Delete a custom task row ──────────────────────
+
+  async function deleteCustomTask(dateStr, itemId) {
+    if (!client) return;
+    try {
+      await client.from('pawplan_data')
+        .delete()
+        .eq('date', dateStr)
+        .eq('item_id', itemId)
+        .in('type', ['custom_task', 'task_override']);
+    } catch (e) {
+      console.warn('[DB] deleteCustomTask error:', e.message);
+    }
+  }
+
+  // ── Load custom/override tasks for a date ─────────
+
+  async function loadCustomTasks(dateStr) {
+    if (!client) return [];
+    try {
+      const { data, error } = await client
+        .from('pawplan_data')
+        .select('*')
+        .eq('date', dateStr)
+        .in('type', ['custom_task', 'task_override']);
+      if (error) throw error;
+      return (data || []).map(row => {
+        const parsed = JSON.parse(row.content || '{}');
+        return {
+          id: row.item_id,
+          time: parsed.time || '',
+          title: parsed.title || '',
+          desc: parsed.desc || '',
+          emoji: parsed.emoji || '📌',
+          type: parsed.taskType || 'nova',
+          badge: parsed.badge || null,
+          _isNew: row.type === 'custom_task',
+          _override: row.type === 'task_override',
+        };
+      });
+    } catch (e) {
+      console.warn('[DB] loadCustomTasks error:', e.message);
+      return [];
+    }
+  }
+
   // ── Stats: load all data for stat calculations ────
 
   async function loadAllStats() {
@@ -152,6 +233,9 @@ const DB = (() => {
     addNote,
     deleteNote,
     loadAllStats,
+    saveCustomTask,
+    deleteCustomTask,
+    loadCustomTasks,
     getUsername: () => username,
   };
 

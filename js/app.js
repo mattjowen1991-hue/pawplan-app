@@ -6,9 +6,10 @@
 const App = (() => {
 
   // ── State ─────────────────────────────────────────
-  let dayOffset  = 0;       // 0 = today, -1 = yesterday, etc.
-  let tasksCache = {};      // { dateStr: { itemId: bool } }
-  let notesCache = {};      // { dateStr: [ ...noteRows ] }
+  let dayOffset        = 0;
+  let tasksCache       = {};   // { dateStr: { itemId: bool } }
+  let notesCache       = {};   // { dateStr: [ ...noteRows ] }
+  let customTasksCache = {};   // { dateStr: [ ...taskObjs ] }
 
   // ── Date helpers ──────────────────────────────────
 
@@ -79,17 +80,18 @@ const App = (() => {
   // ── Load & render for a date ──────────────────────
 
   async function _loadAndRender(dateStr) {
-    // Only fetch from DB if not already cached
     if (!tasksCache[dateStr]) {
       const { tasks, notes } = await DB.loadDay(dateStr);
       tasksCache[dateStr] = tasks;
       notesCache[dateStr] = notes;
     }
+    if (!customTasksCache[dateStr]) {
+      customTasksCache[dateStr] = await DB.loadCustomTasks(dateStr);
+    }
 
     const dayNumber = Schedule.getDayNumber(dateStr);
-
     UI.renderHeader(dateStr, dayNumber);
-    UI.renderSchedule(dateStr, tasksCache[dateStr]);
+    UI.renderSchedule(dateStr, tasksCache[dateStr], customTasksCache[dateStr]);
     UI.renderInlineNotes(notesCache[dateStr] || [], dateStr, DB.getUsername());
     UI.renderNotesTab(notesCache[dateStr] || [], dateStr, DB.getUsername());
   }
@@ -116,6 +118,84 @@ const App = (() => {
 
     // Persist to DB (fire and forget)
     DB.toggleTask(dateStr, itemId, newValue);
+  }
+
+  // ── Task editor ───────────────────────────────────
+
+  function openTaskEditor(itemId) {
+    const dateStr = getDateStr();
+    const custom  = customTasksCache[dateStr] || [];
+
+    // Try to find an existing custom/override task first
+    let task = custom.find(t => t.id === itemId);
+
+    if (!task) {
+      // It's a built-in — find it in base schedule as the starting point
+      const base = Schedule.getItems(dateStr);
+      const base_item = base.find(i => i.id === itemId);
+      if (base_item) {
+        task = { ...base_item, _override: false, _isNew: false };
+      }
+    }
+
+    UI.openTaskEditor(task || { id: itemId, _new: true });
+  }
+
+  function openNewTaskEditor() {
+    UI.openTaskEditor({ _new: true, id: `custom_${Date.now()}`, _isNew: true });
+  }
+
+  async function saveTaskEdit() {
+    const dateStr = getDateStr();
+    const id      = document.getElementById('task-editor-id').value || `custom_${Date.now()}`;
+    const time    = document.getElementById('task-editor-time').value.trim();
+    const title   = document.getElementById('task-editor-label').value.trim();
+    const desc    = document.getElementById('task-editor-desc').value.trim();
+    const type    = document.getElementById('task-editor-type').value;
+
+    if (!time || !title) {
+      alert('Please enter at least a time and title.');
+      return;
+    }
+
+    // Is this a built-in being overridden or a new custom task?
+    const baseItems = Schedule.getItems(dateStr);
+    const isBuiltIn = baseItems.some(i => i.id === id);
+
+    const task = {
+      id,
+      time,
+      title,
+      desc,
+      emoji: '📌',
+      type,
+      badge: null,
+      _isNew: !isBuiltIn,
+      _override: isBuiltIn,
+    };
+
+    UI.closeTaskEditor();
+
+    // Optimistic update cache
+    if (!customTasksCache[dateStr]) customTasksCache[dateStr] = [];
+    const idx = customTasksCache[dateStr].findIndex(t => t.id === id);
+    if (idx >= 0) customTasksCache[dateStr][idx] = task;
+    else customTasksCache[dateStr].push(task);
+
+    UI.renderSchedule(dateStr, tasksCache[dateStr] || {}, customTasksCache[dateStr]);
+
+    await DB.saveCustomTask(dateStr, task);
+  }
+
+  async function deleteCustomTask(itemId) {
+    const dateStr = getDateStr();
+    if (!confirm('Remove this task?')) return;
+
+    // Optimistic remove
+    customTasksCache[dateStr] = (customTasksCache[dateStr] || []).filter(t => t.id !== itemId);
+    UI.renderSchedule(dateStr, tasksCache[dateStr] || {}, customTasksCache[dateStr]);
+
+    await DB.deleteCustomTask(dateStr, itemId);
   }
 
   // ── Notes ─────────────────────────────────────────
@@ -160,7 +240,6 @@ const App = (() => {
     UI.renderStats(allData, dayNumber);
   }
 
-  // ── Public API ────────────────────────────────────
   return {
     init,
     saveSetup,
@@ -170,6 +249,10 @@ const App = (() => {
     addNote,
     deleteNote,
     loadAndRenderStats,
+    openTaskEditor,
+    openNewTaskEditor,
+    saveTaskEdit,
+    deleteCustomTask,
   };
 
 })();
