@@ -349,13 +349,19 @@ const Schedule = (() => {
   // ── Time sorting helper ───────────────────────────
 
   function parseTimeToMinutes(timeStr) {
-    // Handles "5:00 AM", "11:30 AM – 12:00 PM", "3:30–5:00 PM" etc.
-    // We only need the START time for sorting
-    const clean = timeStr.split(/[–-]/)[0].trim();
-    const m = clean.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    // Handles "5:00 AM", "6:00–7:00 AM", "11:30 AM – 12:00 PM", "3:30–5:00 PM"
+    // Extract the START time, but inherit AM/PM from end of string if missing
+    const str = timeStr.trim();
+    const ampmMatch = str.match(/(AM|PM)/gi);
+    const globalAmPm = ampmMatch ? ampmMatch[ampmMatch.length - 1].toUpperCase() : null;
+
+    // Get just the start portion (before any dash)
+    const startPart = str.split(/\s*[–—-]\s*/)[0].trim();
+    const m = startPart.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
     if (!m) return 0;
+
     let h = parseInt(m[1]), min = parseInt(m[2]);
-    const ampm = m[3].toUpperCase();
+    const ampm = (m[3] || globalAmPm || 'AM').toUpperCase();
     if (ampm === 'PM' && h !== 12) h += 12;
     if (ampm === 'AM' && h === 12) h = 0;
     return h * 60 + min;
