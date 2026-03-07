@@ -267,8 +267,8 @@ body {
 .day-nav-btn:active { transform: scale(0.94); }
 
 .day-nav-center  { text-align: center; }
-.day-nav-label   { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; }
-.day-nav-sub     { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+.day-nav-label   { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--forest); }
+.day-nav-sub     { font-size: 0.7rem; color: var(--forest-light); margin-top: 2px; }
 
 /* ── Progress ── */
 .progress-wrap    { margin-bottom: 1.1rem; }
