@@ -3,7 +3,7 @@
    Service Worker — offline caching & PWA support
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v1';
+const CACHE_NAME = 'pawplan-v3';
 
 // Files to cache for offline use
 const STATIC_ASSETS = [

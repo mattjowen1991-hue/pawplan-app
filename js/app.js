@@ -114,9 +114,9 @@ const App = (() => {
     // Optimistic update
     if (!tasksCache[dateStr]) tasksCache[dateStr] = {};
     tasksCache[dateStr][itemId] = newValue;
-    UI.renderSchedule(dateStr, tasksCache[dateStr]);
+    UI.renderSchedule(dateStr, tasksCache[dateStr], customTasksCache[dateStr] || []);
 
-    // Persist to DB (fire and forget)
+    // Persist to DB
     DB.toggleTask(dateStr, itemId, newValue);
   }
 
