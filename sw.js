@@ -3,7 +3,7 @@
    Service Worker — network-first so updates are instant
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v4';
+const CACHE_NAME = 'pawplan-v5';
 
 // ── Install: skip waiting so new SW activates immediately ─
 self.addEventListener('install', event => {
