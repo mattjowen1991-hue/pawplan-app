@@ -734,3 +734,24 @@ body {
   transition: transform 0.3s;
 }
 .offline-banner.show { transform: translateY(0); }
+
+/* ── Logo image ─────────────────────────────────── */
+.header-paw-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.loading-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  margin-bottom: 1rem;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1);    opacity: 1;    }
+  50%       { transform: scale(1.06); opacity: 0.85; }
+}
