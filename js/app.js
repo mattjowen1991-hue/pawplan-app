@@ -148,13 +148,19 @@ const App = (() => {
   async function saveTaskEdit() {
     const dateStr = getDateStr();
     const id      = document.getElementById('task-editor-id').value || `custom_${Date.now()}`;
-    const time    = document.getElementById('task-editor-time').value.trim();
-    const title   = document.getElementById('task-editor-label').value.trim();
-    const desc    = document.getElementById('task-editor-desc').value.trim();
-    const type    = document.getElementById('task-editor-type').value;
 
-    if (!time || !title) {
-      alert('Please enter at least a time and title.');
+    // Build time string from pickers
+    const hour  = document.getElementById('task-time-hour').value;
+    const min   = document.getElementById('task-time-min').value;
+    const ampm  = document.getElementById('task-time-ampm').value;
+    const time  = `${hour}:${min} ${ampm}`;
+
+    const title = document.getElementById('task-editor-label').value.trim();
+    const desc  = document.getElementById('task-editor-desc').value.trim();
+    const type  = document.getElementById('task-editor-type').value;
+
+    if (!title) {
+      alert('Please enter a task title.');
       return;
     }
 

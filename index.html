@@ -225,8 +225,30 @@
       </div>
       <input type="hidden" id="task-editor-id" />
 
-      <label class="field-label">Time <span class="field-hint">e.g. 9:00 AM or 1:30–2:00 PM</span></label>
-      <input type="text" class="field-input" id="task-editor-time" placeholder="9:00 AM" />
+      <label class="field-label">Time</label>
+      <div class="time-picker-row">
+        <div class="time-picker-group">
+          <label class="time-picker-label">Hour</label>
+          <select class="field-input time-picker-select" id="task-time-hour">
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </div>
+        <div class="time-picker-group">
+          <label class="time-picker-label">Min</label>
+          <select class="field-input time-picker-select" id="task-time-min">
+            <option value="00">00</option><option value="15">15</option>
+            <option value="30">30</option><option value="45">45</option>
+          </select>
+        </div>
+        <div class="time-picker-group">
+          <label class="time-picker-label">AM/PM</label>
+          <select class="field-input time-picker-select" id="task-time-ampm">
+            <option>AM</option><option>PM</option>
+          </select>
+        </div>
+      </div>
 
       <label class="field-label">Task title</label>
       <input type="text" class="field-input" id="task-editor-label" placeholder="e.g. Nova's potty break" />
@@ -243,8 +265,10 @@
         <option value="school">🎒 School</option>
       </select>
 
-      <button class="btn-primary" onclick="App.saveTaskEdit()">Save Task</button>
-      <button class="btn-danger" id="task-editor-delete" onclick="App.deleteCustomTask(document.getElementById('task-editor-id').value)" style="display:none;margin-top:0.5rem;">Delete Task</button>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="App.saveTaskEdit()">Save Task</button>
+        <button class="btn-danger" id="task-editor-delete" onclick="App.deleteCustomTask(document.getElementById('task-editor-id').value)" style="display:none;">Delete Task</button>
+      </div>
     </div>
   </div>
 

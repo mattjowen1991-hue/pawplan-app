@@ -235,10 +235,22 @@ const UI = (() => {
     const isNew = !task || task._new;
 
     document.getElementById('task-editor-title').textContent = isNew ? 'Add Task' : 'Edit Task';
-    document.getElementById('task-editor-time').value  = task ? task.time  : '';
     document.getElementById('task-editor-label').value = task ? task.title : '';
     document.getElementById('task-editor-desc').value  = task ? (task.desc || '') : '';
     document.getElementById('task-editor-id').value    = task ? task.id    : '';
+
+    // Parse existing time into picker selects
+    const timeStr = (task && task.time) ? task.time : '9:00 AM';
+    const tm = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (tm) {
+      document.getElementById('task-time-hour').value  = String(parseInt(tm[1]));
+      document.getElementById('task-time-min').value   = tm[2].padStart(2,'0');
+      document.getElementById('task-time-ampm').value  = tm[3].toUpperCase();
+    } else {
+      document.getElementById('task-time-hour').value  = '9';
+      document.getElementById('task-time-min').value   = '00';
+      document.getElementById('task-time-ampm').value  = 'AM';
+    }
 
     const typeSelect = document.getElementById('task-editor-type');
     typeSelect.value = task ? (task.type || 'nova') : 'nova';
@@ -246,12 +258,14 @@ const UI = (() => {
     const deleteBtn = document.getElementById('task-editor-delete');
     if (deleteBtn) deleteBtn.style.display = (task && (task._isNew || task._override)) ? 'block' : 'none';
 
+    // Lock background scroll
+    document.body.classList.add('modal-open');
     modal.classList.add('open');
-    // Don't auto-focus — let user tap the field they want, avoids keyboard jumping up immediately
   }
 
   function closeTaskEditor() {
     document.getElementById('task-editor-modal').classList.remove('open');
+    document.body.classList.remove('modal-open');
   }
 
   function handleTaskEditorOverlay(event) {
@@ -262,11 +276,13 @@ const UI = (() => {
 
   function openModal() {
     document.getElementById('note-modal').classList.add('open');
+    document.body.classList.add('modal-open');
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
 
   function closeModal() {
     document.getElementById('note-modal').classList.remove('open');
+    document.body.classList.remove('modal-open');
     document.getElementById('modal-note-text').value = '';
   }
 
