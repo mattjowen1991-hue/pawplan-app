@@ -251,6 +251,7 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.1rem;
+  padding: 0.5rem 0;
 }
 .day-nav-btn {
   background: white;
@@ -263,12 +264,30 @@ body {
   box-shadow: var(--shadow-sm);
   transition: transform 0.1s, box-shadow 0.2s;
   color: var(--forest);
+  flex-shrink: 0;
 }
 .day-nav-btn:active { transform: scale(0.94); }
 
-.day-nav-center  { text-align: center; }
-.day-nav-label   { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--midnight); }
-.day-nav-sub     { font-size: 0.72rem; color: var(--forest); font-weight: 600; margin-top: 2px; }
+.day-nav-center {
+  text-align: center;
+  flex: 1;
+  padding: 0 0.75rem;
+}
+.day-nav-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1.1;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+.day-nav-sub {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  font-weight: 500;
+  margin-top: 3px;
+  letter-spacing: 0.03em;
+}
 
 /* ── Progress ── */
 .progress-wrap    { margin-bottom: 1.1rem; }
