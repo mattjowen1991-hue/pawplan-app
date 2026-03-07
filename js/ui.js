@@ -240,16 +240,14 @@ const UI = (() => {
     document.getElementById('task-editor-desc').value  = task ? (task.desc || '') : '';
     document.getElementById('task-editor-id').value    = task ? task.id    : '';
 
-    // Type selector
     const typeSelect = document.getElementById('task-editor-type');
     typeSelect.value = task ? (task.type || 'nova') : 'nova';
 
-    // Show/hide delete button — only for new custom tasks being edited
     const deleteBtn = document.getElementById('task-editor-delete');
     if (deleteBtn) deleteBtn.style.display = (task && (task._isNew || task._override)) ? 'block' : 'none';
 
     modal.classList.add('open');
-    setTimeout(() => document.getElementById('task-editor-time').focus(), 300);
+    // Don't auto-focus — let user tap the field they want, avoids keyboard jumping up immediately
   }
 
   function closeTaskEditor() {

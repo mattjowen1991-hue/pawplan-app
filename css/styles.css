@@ -801,26 +801,96 @@ body {
   box-shadow: 0 4px 16px rgba(61,90,76,0.35);
 }
 
-/* Task editor modal extras */
-.modal-task-editor { max-height: 90vh; overflow-y: auto; }
+/* ── Task editor modal extras ────────────────────── */
+/* Override white-on-dark setup screen styles for the white modal */
+.modal .field-label {
+  color: var(--forest);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  margin-top: 1rem;
+  display: block;
+}
+.modal .field-label:first-of-type { margin-top: 0; }
+
+.modal .field-input {
+  background: var(--cream);
+  border: 1.5px solid var(--sand);
+  color: var(--midnight);
+  width: 100%;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  display: block;
+}
+.modal .field-input::placeholder { color: var(--muted); }
+.modal .field-input:focus { border-color: var(--terracotta); }
+
+/* Scrollable modal so keyboard doesn't hide content */
+.modal-task-editor {
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+/* When keyboard is open on iOS, modal shifts up */
+@supports (-webkit-touch-callout: none) {
+  .modal-overlay.open {
+    align-items: flex-start;
+    padding-top: 5vh;
+  }
+  .modal-task-editor {
+    max-height: 80vh;
+  }
+}
 
 .field-hint {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: var(--muted);
   font-weight: 400;
   margin-left: 0.3rem;
 }
 
-.field-textarea {
+.modal .field-textarea {
   min-height: 72px;
-  resize: vertical;
+  resize: none;
 }
 
-.field-select {
+.modal .field-select {
   appearance: none;
+  -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%233D5A4C' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
+  background-color: var(--cream);
   padding-right: 2.5rem;
   cursor: pointer;
 }
+
+/* Modal header row with close button */
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.modal-header-row .modal-title { margin-bottom: 0; }
+
+.modal-close-btn {
+  background: var(--sand);
+  border: none;
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  font-size: 0.8rem;
+  color: var(--forest);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.modal-close-btn:active { background: var(--sand-dark); }

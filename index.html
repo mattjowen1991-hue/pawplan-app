@@ -219,7 +219,10 @@
   <div class="modal-overlay" id="task-editor-modal" onclick="UI.handleTaskEditorOverlay(event)">
     <div class="modal modal-task-editor">
       <div class="modal-handle"></div>
-      <h2 class="modal-title" id="task-editor-title">Edit Task</h2>
+      <div class="modal-header-row">
+        <h2 class="modal-title" id="task-editor-title">Edit Task</h2>
+        <button class="modal-close-btn" onclick="UI.closeTaskEditor()" aria-label="Close">✕</button>
+      </div>
       <input type="hidden" id="task-editor-id" />
 
       <label class="field-label">Time <span class="field-hint">e.g. 9:00 AM or 1:30–2:00 PM</span></label>
