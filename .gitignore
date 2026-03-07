@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env / secrets (never commit these!)
+.env
+.env.local
+*.env
+
+# Node (if you ever add a build step)
+node_modules/
+npm-debug.log*

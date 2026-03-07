@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#3D5A4C" />
+  <title>PawPlan · Nova & Gloria</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       LOADING SPLASH
+  ════════════════════════════════════════════ -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-paw">🐾</div>
+    <div class="loading-title">PawPlan</div>
+    <div class="loading-sub">Nova & Gloria's daily schedule</div>
+    <div class="loading-dots">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SETUP SCREEN
+  ════════════════════════════════════════════ -->
+  <div id="setup-screen" class="hidden">
+    <div class="setup-bg"></div>
+    <div class="setup-inner">
+      <div class="setup-logo">🐾</div>
+      <h1 class="setup-title">PawPlan</h1>
+      <p class="setup-subtitle">Nova & Gloria's daily planner</p>
+      <div class="setup-card">
+        <label class="field-label">Your Name</label>
+        <input type="text" id="setup-username" class="field-input" placeholder="e.g. Matt" autocomplete="off" />
+
+        <label class="field-label">Supabase Project URL</label>
+        <input type="url" id="setup-url" class="field-input" placeholder="https://xxxx.supabase.co" autocomplete="off" />
+
+        <label class="field-label">Supabase Anon Key</label>
+        <input type="text" id="setup-key" class="field-input" placeholder="eyJhbGciOiJIUzI1NiIs..." autocomplete="off" />
+
+        <button class="btn-primary" onclick="App.saveSetup()">Connect & Start →</button>
+
+        <p class="setup-note">
+          Your partner uses the same URL & Key but enters their own name.<br />
+          Find these in <strong>Supabase → Settings → API</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN APP
+  ════════════════════════════════════════════ -->
+  <div id="app" class="hidden">
+
+    <!-- Header -->
+    <header class="app-header" id="app-header">
+      <div class="header-top">
+        <div class="header-brand">
+          <span class="header-paw">🐾</span>
+          <div>
+            <div class="header-title">Paw<span>Plan</span></div>
+            <div class="header-date" id="header-date"></div>
+          </div>
+        </div>
+        <div class="day-pill" id="day-counter">Day 1</div>
+      </div>
+      <nav class="nav-tabs" role="tablist">
+        <button class="nav-tab active" onclick="UI.switchTab('schedule', this)" role="tab">Today</button>
+        <button class="nav-tab" onclick="UI.switchTab('notes', this)" role="tab">Notes</button>
+        <button class="nav-tab" onclick="UI.switchTab('stats', this)" role="tab">Progress</button>
+        <button class="nav-tab" onclick="UI.switchTab('settings', this)" role="tab">Settings</button>
+      </nav>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- ── SCHEDULE TAB ── -->
+      <section class="tab-content active" id="tab-schedule">
+        <div class="day-nav">
+          <button class="day-nav-btn" onclick="App.changeDay(-1)" aria-label="Previous day">‹</button>
+          <div class="day-nav-center">
+            <div class="day-nav-label" id="day-nav-label">Today</div>
+            <div class="day-nav-sub" id="day-nav-sub">Day 1 of 365</div>
+          </div>
+          <button class="day-nav-btn" onclick="App.changeDay(1)" aria-label="Next day">›</button>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-label" id="progress-label">0 / 0 tasks</div>
+        </div>
+
+        <div id="schedule-list"></div>
+
+        <div class="card notes-card">
+          <div class="notes-header">
+            <h3 class="notes-title">Day Notes</h3>
+            <span class="notes-count" id="inline-note-count"></span>
+          </div>
+          <div id="inline-notes-list"></div>
+          <div class="note-input-row">
+            <input class="note-input" type="text" id="inline-note-input" placeholder="Add a note for today…" />
+            <button class="note-send-btn" onclick="App.addNote('inline')">Add</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── NOTES TAB ── -->
+      <section class="tab-content" id="tab-notes">
+        <div class="day-nav">
+          <button class="day-nav-btn" onclick="App.changeDay(-1)">‹</button>
+          <div class="day-nav-center">
+            <div class="day-nav-label" id="notes-day-label">Today</div>
+            <div class="day-nav-sub" id="notes-day-sub">Day 1 of 365</div>
+          </div>
+          <button class="day-nav-btn" onclick="App.changeDay(1)">›</button>
+        </div>
+        <div id="notes-list"></div>
+        <div class="card" style="margin-top:1rem;">
+          <textarea class="note-textarea" id="notes-tab-input" placeholder="Write a note for this day…" rows="3"></textarea>
+          <button class="btn-primary" style="margin-top:0.75rem;" onclick="App.addNote('tab')">Save Note</button>
+        </div>
+      </section>
+
+      <!-- ── STATS TAB ── -->
+      <section class="tab-content" id="tab-stats">
+        <div class="streak-card" id="streak-card">
+          <div class="streak-emoji">🔥</div>
+          <div class="streak-text">
+            <h3 id="streak-value">0 Day Streak</h3>
+            <p>Keep ticking off your daily tasks!</p>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="stat-days">0</div><div class="stat-label">Days tracked</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-tasks">0</div><div class="stat-label">Tasks done</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-notes">0</div><div class="stat-label">Notes logged</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-week">0%</div><div class="stat-label">This week avg</div></div>
+        </div>
+        <div class="card">
+          <h3 class="notes-title" style="margin-bottom:0.75rem;">💡 This week's tip</h3>
+          <p class="week-tip" id="week-tip">Loading…</p>
+        </div>
+      </section>
+
+      <!-- ── SETTINGS TAB ── -->
+      <section class="tab-content" id="tab-settings">
+        <div class="settings-section">
+          <div class="settings-section-title">Your Profile</div>
+          <div class="settings-row"><label>Your name</label><span id="settings-name">—</span></div>
+          <div class="settings-row"><label>Supabase status</label><span class="status-ok">✓ Connected</span></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Reminders</div>
+          <div class="settings-row"><label>Feeding reminders</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
+          <div class="settings-row"><label>Task reminders</label><div class="toggle" onclick="UI.toggleSetting(this)"></div></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Schedule Options</div>
+          <div class="settings-row"><label>Show partner's tasks</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
+          <div class="settings-row"><label>Weekend mode</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
+        </div>
+        <button class="btn-danger" onclick="App.resetApp()">Reset &amp; Change Supabase Settings</button>
+      </section>
+
+    </main>
+  </div><!-- /#app -->
+
+  <!-- ═══════════════════════════════════════════
+       NOTE MODAL (FAB)
+  ════════════════════════════════════════════ -->
+  <button class="fab" id="fab" onclick="UI.openModal()" aria-label="Add note">✏️</button>
+
+  <div class="modal-overlay" id="note-modal" onclick="UI.handleModalOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <h2 class="modal-title">💬 Quick Note</h2>
+      <p class="modal-desc">Leave a note for your partner about today — Nova's behaviour, wins, anything important.</p>
+      <textarea class="note-textarea" id="modal-note-text" placeholder="e.g. Nova settled brilliantly during lunch chat today 🎉 Used the frozen Kong trick!"></textarea>
+      <button class="btn-primary" onclick="App.addNote('modal')">Save Note</button>
+    </div>
+  </div>
+
+  <!-- Scripts — order matters -->
+  <script src="js/schedule.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
