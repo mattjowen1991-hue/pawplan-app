@@ -176,3 +176,8 @@ const App = (() => {
 
 // ── Kick everything off ───────────────────────────
 document.addEventListener('DOMContentLoaded', App.init);
+
+// ── Offline detection ─────────────────────────────
+window.addEventListener('online',  () => document.getElementById('offline-banner').classList.remove('show'));
+window.addEventListener('offline', () => document.getElementById('offline-banner').classList.add('show'));
+if (!navigator.onLine) document.getElementById('offline-banner').classList.add('show');

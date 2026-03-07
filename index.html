@@ -2,16 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PawPlan" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#3D5A4C" />
+  <meta name="description" content="Nova & Gloria's daily schedule planner" />
+
+  <!-- Icons (Apple) -->
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-192.png" />
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
   <title>PawPlan · Nova & Gloria</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+  <!-- Offline banner -->
+  <div class="offline-banner" id="offline-banner">📵 Offline — changes will sync when reconnected</div>
 
   <!-- ═══════════════════════════════════════════
        LOADING SPLASH
@@ -198,6 +215,17 @@
   <script src="js/db.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- Register Service Worker for offline/PWA support -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('[PWA] Service worker registered', reg.scope))
+          .catch(err => console.log('[PWA] Service worker failed', err));
+      });
+    }
+  </script>
 
 </body>
 </html>

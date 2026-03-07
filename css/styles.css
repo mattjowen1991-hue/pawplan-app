@@ -657,3 +657,80 @@ body {
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .content { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
 }
+
+/* ══════════════════════════════════════════════════
+   MOBILE PWA ENHANCEMENTS
+══════════════════════════════════════════════════ */
+
+/* Prevent text selection on tap */
+.schedule-item-inner,
+.day-nav-btn,
+.nav-tab,
+.bottom-nav-item,
+.btn-primary,
+.btn-danger,
+.fab,
+.toggle {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Smooth momentum scrolling on iOS */
+.content {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Remove tap highlight everywhere */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Active states feel snappy on mobile */
+.schedule-item-inner:active {
+  background: var(--cream);
+  transition: background 0.05s;
+}
+.day-nav-btn:active,
+.btn-primary:active,
+.note-send-btn:active {
+  transform: scale(0.96);
+  transition: transform 0.05s;
+}
+
+/* Larger touch targets on mobile */
+@media (max-width: 480px) {
+  .nav-tab        { padding: 0.75rem 0.25rem; font-size: 0.75rem; }
+  .day-nav-btn    { width: 44px; height: 44px; }
+  .item-check     { width: 26px; height: 26px; }
+  .schedule-item-inner { padding: 0.9rem 1rem; }
+}
+
+/* Status bar padding when installed as PWA on iPhone */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .app-header {
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+  }
+}
+
+/* Installed PWA: hide browser chrome remnants */
+@media (display-mode: standalone) {
+  body { background: var(--forest); }
+  .content { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+}
+
+/* Offline banner */
+.offline-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #C62828;
+  color: white;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.4rem;
+  z-index: 999;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+}
+.offline-banner.show { transform: translateY(0); }
