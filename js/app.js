@@ -21,50 +21,16 @@ const App = (() => {
 
   // ── Setup ─────────────────────────────────────────
 
-  function saveSetup() {
-    const username = document.getElementById('setup-username').value.trim();
-    const url      = document.getElementById('setup-url').value.trim();
-    const key      = document.getElementById('setup-key').value.trim();
-
-    if (!username || !url || !key) {
-      alert('Please fill in all three fields.');
-      return;
-    }
-
-    const cfg = { username, url, key };
-    localStorage.setItem('pawplan_config', JSON.stringify(cfg));
-    _boot(cfg);
-  }
-
   function resetApp() {
-    if (confirm('Reset local settings? Your Supabase data is kept safe.')) {
-      localStorage.removeItem('pawplan_config');
-      location.reload();
+    if (confirm('Sign out of PawPlan?')) {
+      authSignOut();
     }
   }
 
   // ── Boot sequence ─────────────────────────────────
 
-  async function _boot(cfg, skipConnectionTest = false) {
-    DB.init(cfg.url, cfg.key, cfg.username);
-
-    // Only test connection on first-time setup, not on every refresh
-    if (!skipConnectionTest) {
-      const { ok, message } = await DB.testConnection();
-      if (!ok) {
-        alert(`Couldn't connect to Supabase.\n\n${message}\n\nCheck your URL and Anon Key.`);
-        UI.showSetup();
-        const uEl   = document.getElementById('setup-username');
-        const urlEl = document.getElementById('setup-url');
-        const keyEl = document.getElementById('setup-key');
-        if (uEl)   uEl.value   = cfg.username;
-        if (urlEl) urlEl.value = cfg.url;
-        if (keyEl) keyEl.value = cfg.key;
-        return;
-      }
-    }
-
-    UI.showApp(cfg.username);
+  async function _enterApp(user) {
+    UI.showApp(DB.getUsername());
     await _loadAndRender(getDateStr());
     UI.hideLoading();
   }
@@ -74,19 +40,53 @@ const App = (() => {
       history.replaceState({ base: true }, '');
     }
 
-    const stored = localStorage.getItem('pawplan_config');
-    if (stored) {
-      try {
-        // skipConnectionTest=true on refresh — go straight to the app
-        // If Supabase is unreachable the data load will just return empty/cached
-        await _boot(JSON.parse(stored), true);
-      } catch (e) {
-        console.error('[App] boot error', e);
-        UI.showSetup();
-      }
+    DB.init();
+
+    // Check for existing Supabase session — auto-login if token still valid
+    const user = await DB.getSession();
+    if (user) {
+      await _enterApp(user);
     } else {
       UI.showSetup();
     }
+  }
+
+  // ── Auth actions (called from setup screen) ───────
+
+  async function authSignIn() {
+    const email    = document.getElementById('setup-email').value.trim();
+    const password = document.getElementById('setup-password').value;
+    const errEl    = document.getElementById('setup-error');
+    errEl.textContent = '';
+    if (!email || !password) { errEl.textContent = 'Please enter your email and password.'; return; }
+    try {
+      const user = await DB.signIn(email, password);
+      await _enterApp(user);
+    } catch (e) {
+      errEl.textContent = e.message || 'Sign in failed.';
+    }
+  }
+
+  async function authSignUp() {
+    const name     = document.getElementById('setup-name').value.trim();
+    const email    = document.getElementById('setup-email').value.trim();
+    const password = document.getElementById('setup-password').value;
+    const errEl    = document.getElementById('setup-error');
+    errEl.textContent = '';
+    if (!name || !email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
+    if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+    try {
+      const user = await DB.signUp(email, password, name);
+      await _enterApp(user);
+    } catch (e) {
+      errEl.textContent = e.message || 'Sign up failed.';
+    }
+  }
+
+  async function authSignOut() {
+    await DB.signOut();
+    localStorage.removeItem('pawplan_config');
+    location.reload();
   }
 
   // ── Load & render for a date ──────────────────────
@@ -310,7 +310,9 @@ const App = (() => {
 
   return {
     init,
-    saveSetup,
+    authSignIn,
+    authSignUp,
+    authSignOut,
     resetApp,
     changeDay,
     toggleTask,

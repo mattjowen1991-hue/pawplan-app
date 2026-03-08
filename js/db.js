@@ -1,31 +1,68 @@
 /* ═══════════════════════════════════════════════════
    PAWPLAN · js/db.js
-   All Supabase interactions — tasks & notes
+   All Supabase interactions — auth, tasks & notes
 ════════════════════════════════════════════════════ */
 
 const DB = (() => {
 
+  // Hard-coded project credentials — no need to enter them manually
+  const SUPABASE_URL = 'https://pyfmkxvzjzfegmvtegxa.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Zm1reHZ6anpmZWdtdnRlZ3hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTczNzYsImV4cCI6MjA4ODQ5MzM3Nn0.DAuABeUaWuK28OmuGbRZdhtW4r8q_he7x28Z5on0zlg';
+
   let client = null;
-  let username = '';
+  let currentUser = null;
 
-  // ── Init ──────────────────────────────────────────
+  // ── Init (called once on page load) ──────────────
 
-  function init(url, key, name) {
-    client = window.supabase.createClient(url, key);
-    username = name;
+  function init() {
+    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
   }
 
-  // ── Connection test ───────────────────────────────
+  // ── Auth ──────────────────────────────────────────
 
-  async function testConnection() {
-    try {
-      const { error } = await client.from('pawplan_data').select('id').limit(1);
-      // 42P01 = table doesn't exist yet — still "connected", just needs setup
-      if (error && error.code !== '42P01') throw error;
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, message: e.message };
+  async function signUp(email, password, displayName) {
+    const { data, error } = await client.auth.signUp({
+      email, password,
+      options: { data: { display_name: displayName } },
+    });
+    if (error) throw error;
+    currentUser = data.user;
+    return data.user;
+  }
+
+  async function signIn(email, password) {
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    currentUser = data.user;
+    return data.user;
+  }
+
+  async function signOut() {
+    await client.auth.signOut();
+    currentUser = null;
+  }
+
+  // Returns existing session user, or null if not logged in
+  async function getSession() {
+    const { data } = await client.auth.getSession();
+    if (data?.session?.user) {
+      currentUser = data.session.user;
+      return data.session.user;
     }
+    return null;
+  }
+
+  function getUsername() {
+    if (!currentUser) return '';
+    return currentUser.user_metadata?.display_name
+      || currentUser.email?.split('@')[0]
+      || 'You';
+  }
+
+  function getUserId() {
+    return currentUser?.id || null;
   }
 
   // ── Load all data for a given date ───────────────
@@ -62,30 +99,27 @@ const DB = (() => {
   // ── Toggle a task ─────────────────────────────────
 
   async function toggleTask(dateStr, itemId, newValue) {
-    if (!client) return;
+    if (!client || !currentUser) return;
     try {
-      // Check for existing row
       const { data } = await client
         .from('pawplan_data')
         .select('id')
         .eq('date', dateStr)
         .eq('type', 'task')
         .eq('item_id', itemId)
+        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (data) {
         await client
           .from('pawplan_data')
-          .update({ completed: newValue, author: username })
+          .update({ completed: newValue, author: getUsername() })
           .eq('id', data.id);
       } else {
         await client.from('pawplan_data').insert({
-          date: dateStr,
-          type: 'task',
-          item_id: itemId,
-          completed: newValue,
-          author: username,
-          content: '',
+          date: dateStr, type: 'task', item_id: itemId,
+          completed: newValue, author: getUsername(),
+          content: '', user_id: currentUser.id,
         });
       }
     } catch (e) {
@@ -96,15 +130,13 @@ const DB = (() => {
   // ── Add a note ────────────────────────────────────
 
   async function addNote(dateStr, text) {
-    if (!client || !text.trim()) return null;
+    if (!client || !currentUser || !text.trim()) return null;
     const row = {
-      date: dateStr,
-      type: 'note',
+      date: dateStr, type: 'note',
       item_id: `note_${Date.now()}`,
-      content: text.trim(),
-      author: username,
-      completed: false,
-      created_at: new Date().toISOString(),
+      content: text.trim(), author: getUsername(),
+      completed: false, created_at: new Date().toISOString(),
+      user_id: currentUser.id,
     };
     try {
       const { error } = await client.from('pawplan_data').insert(row);
@@ -112,7 +144,7 @@ const DB = (() => {
       return row;
     } catch (e) {
       console.warn('[DB] addNote error:', e.message);
-      return row; // still return so UI updates optimistically
+      return row;
     }
   }
 
@@ -131,15 +163,15 @@ const DB = (() => {
   // type = 'custom_task' for new, 'task_override' for edits to built-ins
 
   async function saveCustomTask(dateStr, task) {
-    if (!client) return task;
+    if (!client || !currentUser) return task;
     try {
-      // Check if an override/custom already exists for this item_id + date
       const { data } = await client
         .from('pawplan_data')
         .select('id')
         .eq('date', dateStr)
         .in('type', ['custom_task', 'task_override'])
         .eq('item_id', task.id)
+        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       const payload = {
@@ -147,8 +179,9 @@ const DB = (() => {
         type: task._isNew ? 'custom_task' : 'task_override',
         item_id: task.id,
         content: JSON.stringify({ time: task.time, title: task.title, desc: task.desc, emoji: task.emoji, taskType: task.type, badge: task.badge || null }),
-        author: username,
+        author: getUsername(),
         completed: false,
+        user_id: currentUser.id,
       };
 
       if (data) {
@@ -227,7 +260,12 @@ const DB = (() => {
 
   return {
     init,
-    testConnection,
+    signUp,
+    signIn,
+    signOut,
+    getSession,
+    getUsername,
+    getUserId,
     loadDay,
     toggleTask,
     addNote,
@@ -236,7 +274,6 @@ const DB = (() => {
     saveCustomTask,
     deleteCustomTask,
     loadCustomTasks,
-    getUsername: () => username,
   };
 
 })();

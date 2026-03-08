@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <title>PawPlan · Nova & Gloria</title>
-  <link rel="stylesheet" href="css/styles.css?v=26" />
+  <link rel="stylesheet" href="css/styles.css?v=27" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -45,7 +45,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════
-       SETUP SCREEN
+       SETUP / LOGIN SCREEN
   ════════════════════════════════════════════ -->
   <div id="setup-screen" class="hidden">
     <div class="setup-bg"></div>
@@ -53,21 +53,35 @@
       <div class="setup-logo">🐾</div>
       <h1 class="setup-title">PawPlan</h1>
       <p class="setup-subtitle">Nova & Gloria's daily planner</p>
+
+      <!-- Tab toggle: Sign In / Register -->
+      <div class="setup-tabs">
+        <button class="setup-tab active" id="tab-signin" onclick="UI.toggleAuthTab('signin')">Sign In</button>
+        <button class="setup-tab" id="tab-register" onclick="UI.toggleAuthTab('register')">Register</button>
+      </div>
+
       <div class="setup-card">
-        <label class="field-label">Your Name</label>
-        <input type="text" id="setup-username" class="field-input" placeholder="e.g. Matt" autocomplete="off" />
+        <!-- Name field — register only -->
+        <div id="field-name" style="display:none">
+          <label class="field-label">Your Name</label>
+          <input type="text" id="setup-name" class="field-input" placeholder="e.g. Matt" autocomplete="name" />
+        </div>
 
-        <label class="field-label">Supabase Project URL</label>
-        <input type="url" id="setup-url" class="field-input" placeholder="https://xxxx.supabase.co" autocomplete="off" />
+        <label class="field-label">Email</label>
+        <input type="email" id="setup-email" class="field-input" placeholder="you@example.com" autocomplete="email" />
 
-        <label class="field-label">Supabase Anon Key</label>
-        <input type="text" id="setup-key" class="field-input" placeholder="eyJhbGciOiJIUzI1NiIs..." autocomplete="off" />
+        <label class="field-label">Password</label>
+        <input type="password" id="setup-password" class="field-input" placeholder="••••••••" autocomplete="current-password" />
 
-        <button class="btn-primary" onclick="App.saveSetup()">Connect & Start →</button>
+        <p class="setup-error" id="setup-error"></p>
 
-        <p class="setup-note">
-          Your partner uses the same URL & Key but enters their own name.<br />
-          Find these in <strong>Supabase → Settings → API</strong>.
+        <button class="btn-primary" id="setup-btn" onclick="App.authSignIn()">Sign In →</button>
+
+        <p class="setup-note" id="setup-note-signin">
+          Use the same email across devices — your data stays in sync automatically.
+        </p>
+        <p class="setup-note hidden" id="setup-note-register">
+          Register once. Your partner creates their own account with a different email.
         </p>
       </div>
     </div>
@@ -178,8 +192,8 @@
       <section class="tab-content" id="tab-settings">
         <div class="settings-section">
           <div class="settings-section-title">Your Profile</div>
-          <div class="settings-row"><label>Your name</label><span id="settings-name">—</span></div>
-          <div class="settings-row"><label>Supabase status</label><span class="status-ok">✓ Connected</span></div>
+          <div class="settings-row"><label>Signed in as</label><span id="settings-name">—</span></div>
+          <div class="settings-row"><label>Sync status</label><span class="status-ok">✓ Connected</span></div>
         </div>
         <div class="settings-section">
           <div class="settings-section-title">Reminders</div>
@@ -191,7 +205,7 @@
           <div class="settings-row"><label>Show partner's tasks</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
           <div class="settings-row"><label>Weekend mode</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
         </div>
-        <button class="btn-danger" onclick="App.resetApp()">Reset &amp; Change Supabase Settings</button>
+        <button class="btn-danger" onclick="App.resetApp()">Sign Out</button>
       </section>
 
     </main>
@@ -256,10 +270,10 @@
   </div>
 
   <!-- Scripts — order matters -->
-  <script src="js/schedule.js?v=26"></script>
-  <script src="js/db.js?v=26"></script>
-  <script src="js/ui.js?v=26"></script>
-  <script src="js/app.js?v=26"></script>
+  <script src="js/schedule.js?v=27"></script>
+  <script src="js/db.js?v=27"></script>
+  <script src="js/ui.js?v=27"></script>
+  <script src="js/app.js?v=27"></script>
 
   <!-- Register Service Worker for offline/PWA support -->
   <script>

@@ -171,6 +171,42 @@ body {
 }
 .setup-note strong { color: rgba(255,255,255,0.65); }
 
+/* Auth tab toggle */
+.setup-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+  padding: 3px;
+  width: 100%;
+  max-width: 320px;
+}
+.setup-tab {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.setup-tab.active {
+  background: var(--terracotta);
+  color: white;
+}
+.setup-error {
+  color: #ff8a80;
+  font-size: 0.8rem;
+  min-height: 1.2em;
+  margin: 0.5rem 0 0;
+  text-align: center;
+}
+
 /* ══════════════════════════════════════════════════
    APP HEADER
 ══════════════════════════════════════════════════ */

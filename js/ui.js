@@ -257,6 +257,18 @@ const UI = (() => {
 
   // ── Settings ──────────────────────────────────────
 
+  function toggleAuthTab(tab) {
+    const isRegister = tab === 'register';
+    document.getElementById('tab-signin').classList.toggle('active', !isRegister);
+    document.getElementById('tab-register').classList.toggle('active', isRegister);
+    document.getElementById('field-name').style.display = isRegister ? '' : 'none';
+    document.getElementById('setup-btn').textContent = isRegister ? 'Create Account →' : 'Sign In →';
+    document.getElementById('setup-btn').onclick = isRegister ? App.authSignUp : App.authSignIn;
+    document.getElementById('setup-note-signin').classList.toggle('hidden', isRegister);
+    document.getElementById('setup-note-register').classList.toggle('hidden', !isRegister);
+    document.getElementById('setup-error').textContent = '';
+  }
+
   function toggleSetting(el) {
     el.classList.toggle('on');
   }
@@ -575,6 +587,7 @@ const UI = (() => {
     renderStats,
     switchTab,
     toggleSetting,
+    toggleAuthTab,
     openModal,
     closeModal,
     handleModalOverlayClick,
