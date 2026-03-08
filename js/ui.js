@@ -229,9 +229,15 @@ const UI = (() => {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
 
-    // Show/hide the carousel alongside the schedule tab
+    // Carousel and schedule header only show on Today tab
     const carousel = document.getElementById('schedule-slide-wrap');
-    if (carousel) carousel.style.display = tabId === 'schedule' ? '' : 'none';
+    const scheduleContent = document.querySelector('.content-schedule');
+    const tabsContent = document.querySelector('.content-tabs');
+
+    const isSchedule = tabId === 'schedule';
+    if (carousel)        carousel.style.display       = isSchedule ? '' : 'none';
+    if (scheduleContent) scheduleContent.style.display = isSchedule ? '' : 'none';
+    if (tabsContent)     tabsContent.style.display     = isSchedule ? 'none' : '';
 
     if (tabId === 'stats') App.loadAndRenderStats();
   }
