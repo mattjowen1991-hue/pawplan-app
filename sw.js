@@ -3,7 +3,7 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v6';
+const CACHE_NAME = 'pawplan-v7';
 
 // ── Install: skip waiting so new SW activates immediately ─
 self.addEventListener('install', event => {
