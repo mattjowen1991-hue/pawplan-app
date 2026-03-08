@@ -289,31 +289,31 @@ const UI = (() => {
     return `${h}:${m} ${ampm}`;
   }
 
-  // ── Android back gesture handler ─────────────────
-  // Uses location.hash instead of pushState — hash changes do NOT trigger
-  // native page-slide animations on Android Chrome or iOS Safari, but DO
-  // fire hashchange/popstate so we can intercept the hardware back button.
+  // ── Android back button handler ───────────────────
+  // We do NOT use history.pushState/hash at all — any history entry causes
+  // Android Chrome to play its native full-page swipe-back animation.
+  // Instead we use the Navigation API (Chrome 102+) to intercept back
+  // without adding any history entry. On older browsers the hardware
+  // back button will close the PWA, which is acceptable.
 
-  function pushModalHistory() {
-    // Only push if we're not already in a modal state
-    if (location.hash !== '#modal') {
-      history.pushState({ modal: true }, '', '#modal');
+  function _initBackHandler() {
+    if ('navigation' in window) {
+      navigation.addEventListener('navigate', e => {
+        if (e.navigationType !== 'traverse') return;
+        const taskModal = document.getElementById('task-editor-modal');
+        const noteModal = document.getElementById('note-modal');
+        if ((taskModal && taskModal.classList.contains('open')) ||
+            (noteModal && noteModal.classList.contains('open'))) {
+          e.intercept({ handler: async () => {
+            if (taskModal && taskModal.classList.contains('open')) closeTaskEditor();
+            else if (noteModal && noteModal.classList.contains('open')) closeModal();
+          }});
+        }
+      });
     }
   }
 
-  function handlePopState(e) {
-    // Only act if navigating away from the modal hash (back gesture / back button)
-    if (location.hash === '#modal') return; // going forward somehow, ignore
-    const taskModal = document.getElementById('task-editor-modal');
-    const noteModal = document.getElementById('note-modal');
-    if (taskModal && taskModal.classList.contains('open')) {
-      closeTaskEditor();
-    } else if (noteModal && noteModal.classList.contains('open')) {
-      closeModal();
-    }
-  }
-
-  window.addEventListener('popstate', handlePopState);
+  _initBackHandler();
 
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');
@@ -334,14 +334,12 @@ const UI = (() => {
 
     document.body.classList.add('modal-open');
     modal.classList.add('open');
-    setTrackPos(0, false);  // ← snap carousel to centre so blur overlay has nothing to inherit
-    pushModalHistory();
+    setTrackPos(0, false);
   }
 
   function closeTaskEditor() {
     document.getElementById('task-editor-modal').classList.remove('open');
     document.body.classList.remove('modal-open');
-    if (location.hash === '#modal') history.replaceState(null, '', ' ');
   }
 
   function handleTaskEditorOverlay(event) {
@@ -358,7 +356,6 @@ const UI = (() => {
     m.classList.add('open');
     document.body.classList.add('modal-open');
     setTrackPos(0, false);
-    pushModalHistory();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
 
@@ -369,7 +366,6 @@ const UI = (() => {
     document.body.classList.remove('modal-open');
     const t = document.getElementById('modal-note-text');
     if (t) t.value = '';
-    if (location.hash === '#modal') history.replaceState(null, '', ' ');
   }
 
   function handleModalOverlayClick(event) {
