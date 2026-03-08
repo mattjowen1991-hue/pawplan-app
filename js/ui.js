@@ -289,11 +289,40 @@ const UI = (() => {
     return `${h}:${m} ${ampm}`;
   }
 
-  // ── No history API used for modals ───────────────
-  // Chrome's back gesture navigates through real history entries.
-  // We don't add any — modals close via the ✕ button or tapping the overlay.
-  function markModalOpen() {}
-  function markModalClosed() {}
+  // ── Modal history trap (for iOS/Chrome swipe-back) ──
+  // When a modal opens, push one history entry so a back-swipe/popstate
+  // closes the modal instead of closing the app.
+  let modalHistoryActive = false;
+  let closingFromPopstate = false;
+
+  function markModalOpen() {
+    if (modalHistoryActive) return;
+    history.pushState({ pawplanModal: true }, '');
+    modalHistoryActive = true;
+  }
+
+  function markModalClosed() {
+    if (!modalHistoryActive) return;
+    if (closingFromPopstate) {
+      modalHistoryActive = false;
+      return;
+    }
+    modalHistoryActive = false;
+    history.back();
+  }
+
+  function _handlePopState() {
+    if (!modalHistoryActive) return;
+
+    const taskModal = document.getElementById('task-editor-modal');
+    const noteModal = document.getElementById('note-modal');
+
+    closingFromPopstate = true;
+    if (taskModal && taskModal.classList.contains('open')) closeTaskEditor();
+    if (noteModal && noteModal.classList.contains('open')) closeModal();
+    modalHistoryActive = false;
+    closingFromPopstate = false;
+  }
 
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');
@@ -565,6 +594,7 @@ const UI = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('popstate', _handlePopState);
     initSwipe();
     initLongPress();
   });
