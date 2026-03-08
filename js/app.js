@@ -36,6 +36,13 @@ const App = (() => {
   }
 
   async function init() {
+    // Push a sentinel so Android's swipe-back never exits the app.
+    // popstate re-pushes it immediately, keeping the app in place.
+    history.pushState({ pawplan: true }, '');
+    window.addEventListener('popstate', () => {
+      history.pushState({ pawplan: true }, '');
+    });
+
     DB.init();
 
     // Check for existing Supabase session — auto-login if token still valid
