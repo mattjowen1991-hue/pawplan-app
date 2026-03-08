@@ -101,12 +101,41 @@ const App = (() => {
     UI.renderSchedule(dateStr, tasksCache[dateStr], customTasksCache[dateStr]);
     UI.renderInlineNotes(notesCache[dateStr] || [], dateStr, DB.getUsername());
     UI.renderNotesTab(notesCache[dateStr] || [], dateStr, DB.getUsername());
+
+    // Pre-render adjacent panels (fire-and-forget, no await)
+    _renderAdjacentPanel('prev', dateStr, -1);
+    _renderAdjacentPanel('next', dateStr, +1);
+  }
+
+  function _offsetDate(dateStr, delta) {
+    const d = new Date(dateStr + 'T12:00:00');
+    d.setDate(d.getDate() + delta);
+    return d.toISOString().split('T')[0];
+  }
+
+  async function _renderAdjacentPanel(which, currentDateStr, delta) {
+    const panelEl = document.getElementById(`panel-${which}`);
+    if (!panelEl) return;
+
+    const adjDate = _offsetDate(currentDateStr, delta);
+
+    // Load from cache or DB (lightweight — tasks + custom only, no notes)
+    if (!tasksCache[adjDate]) {
+      const { tasks, notes } = await DB.loadDay(adjDate);
+      tasksCache[adjDate] = tasks;
+      notesCache[adjDate] = notes;
+    }
+    if (!customTasksCache[adjDate]) {
+      customTasksCache[adjDate] = await DB.loadCustomTasks(adjDate);
+    }
+
+    // Build a mini schedule HTML for the adjacent panel (no DOM side-effects)
+    panelEl.innerHTML = UI.buildScheduleHtml(adjDate, tasksCache[adjDate], customTasksCache[adjDate]);
   }
 
   // ── Day navigation ────────────────────────────────
 
   async function changeDay(dir) {
-    UI.haptic('light');
     dayOffset += dir;
     const dateStr = getDateStr();
     await _loadAndRender(dateStr);

@@ -54,17 +54,9 @@ const UI = (() => {
 
   // ── Schedule ──────────────────────────────────────
 
-  function renderSchedule(dateStr, tasksMap, customTasks) {
+  function buildScheduleHtml(dateStr, tasksMap, customTasks) {
     const custom = customTasks || [];
     const items  = Schedule.getMergedItems(dateStr, custom);
-    const done   = items.filter(i => tasksMap[i.id]).length;
-    const total  = items.length;
-    const pct    = total ? Math.round((done / total) * 100) : 0;
-
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-label').textContent =
-      `${done} / ${total} tasks completed · ${pct}%`;
-
     let html = '';
 
     Schedule.SECTIONS.forEach(section => {
@@ -78,7 +70,7 @@ const UI = (() => {
         <div class="section-label">${section.label}</div>`;
 
       sectionItems.forEach(item => {
-        const completed = !!tasksMap[item.id];
+        const completed = !!(tasksMap && tasksMap[item.id]);
         const typeColours = {
           work: 'var(--forest)', nova: 'var(--terracotta)',
           feeding: 'var(--gold)', break: 'var(--forest-light)', school: 'var(--lavender)'
@@ -104,7 +96,21 @@ const UI = (() => {
       html += '</div>';
     });
 
-    document.getElementById('schedule-list').innerHTML = html;
+    return html;
+  }
+
+  function renderSchedule(dateStr, tasksMap, customTasks) {
+    const custom = customTasks || [];
+    const items  = Schedule.getMergedItems(dateStr, custom);
+    const done   = items.filter(i => tasksMap[i.id]).length;
+    const total  = items.length;
+    const pct    = total ? Math.round((done / total) * 100) : 0;
+
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent =
+      `${done} / ${total} tasks completed · ${pct}%`;
+
+    document.getElementById('schedule-list').innerHTML = buildScheduleHtml(dateStr, tasksMap, customTasks);
   }
 
   // ── Notes (inline & tab) ──────────────────────────
@@ -372,78 +378,90 @@ const UI = (() => {
     navigator.vibrate(patterns[type] || [10]);
   }
 
-  // ── Swipe to change day ───────────────────────────
-  function initSwipe() {
-    const el = document.body;
-    let startX = 0, startY = 0, startTime = 0, tracking = false;
-    let panel = null;
+  // ── Three-panel carousel swipe ────────────────────
+  // Three panels sit side-by-side: [prev][current][next]
+  // The wrap is 300% wide; we translate to show the middle panel.
+  // While dragging all three move together so you peek into the adjacent day.
 
-    el.addEventListener('touchstart', e => {
+  function initSwipe() {
+    const wrap = document.getElementById('schedule-slide-wrap');
+    if (!wrap) return;
+
+    let startX = 0, startY = 0, startTime = 0;
+    let dragging = false, locked = false;
+
+    function setTrackX(px, animated) {
+      const track = document.getElementById('carousel-track');
+      if (!track) return;
+      track.style.transition = animated ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
+      // Middle panel starts at -100% (one panel width); px is the drag delta
+      track.style.transform = `translateX(calc(-100% + ${px}px))`;
+    }
+
+    wrap.addEventListener('touchstart', e => {
       if (document.querySelector('.modal-overlay.open')) return;
-      if (e.target.closest('select,input,textarea,button')) return;
-      startX   = e.touches[0].clientX;
-      startY   = e.touches[0].clientY;
+      if (e.target.closest('select,input,textarea,button,textarea')) return;
+      startX    = e.touches[0].clientX;
+      startY    = e.touches[0].clientY;
       startTime = Date.now();
-      tracking = true;
-      panel    = document.getElementById('schedule-panel');
+      dragging  = true;
+      locked    = false;
+      setTrackX(0, false);
     }, { passive: true });
 
-    el.addEventListener('touchmove', e => {
-      if (!tracking || !panel) return;
+    wrap.addEventListener('touchmove', e => {
+      if (!dragging) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
-      // Only track clearly horizontal swipes
-      if (Math.abs(dy) > Math.abs(dx) * 0.7) return;
-      // Dampen the drag — it moves less than finger so it feels like resistance
-      const drag = dx * 0.45;
-      panel.style.transform  = `translateX(${drag}px)`;
-      panel.style.transition = 'none';
+
+      if (!locked) {
+        // Decide axis after 8px of movement
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+
+      if (locked === 'h') {
+        // Rubber-band at edges
+        const bounded = dx * 0.92;
+        setTrackX(bounded, false);
+      }
+      // If locked vertical, don't touch the track — let browser scroll
     }, { passive: true });
 
-    el.addEventListener('touchend', e => {
-      if (!tracking || !panel) return;
-      tracking = false;
+    wrap.addEventListener('touchend', e => {
+      if (!dragging) return;
+      dragging = false;
+      if (locked !== 'h') return;
 
       const dx      = e.changedTouches[0].clientX - startX;
-      const dy      = e.changedTouches[0].clientY - startY;
       const elapsed = Date.now() - startTime;
-
-      const isSwipe = elapsed < 400 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.3;
+      const isSwipe = Math.abs(dx) > 50 && elapsed < 400;
 
       if (isSwipe) {
-        const dir = dx < 0 ? 1 : -1;
-        // Fly the current panel off-screen
-        panel.style.transition = 'transform 0.22s ease-in';
-        panel.style.transform  = `translateX(${dir * -110}%)`;
+        const dir = dx < 0 ? 1 : -1;   // +1 = next day, -1 = prev day
+        // Snap to adjacent panel
+        setTrackX(dir * -wrap.clientWidth, true);
         haptic('light');
         setTimeout(() => {
-          // Reset panel off the other side before data loads
-          panel.style.transition = 'none';
-          panel.style.transform  = `translateX(${dir * 110}%)`;
-          App.changeDay(-dir * -1).then ? App.changeDay(-dir * -1) : App.changeDay(-dir * -1);
-          // Slide in
-          requestAnimationFrame(() => {
-            panel.style.transition = 'transform 0.22s ease-out';
-            panel.style.transform  = 'translateX(0)';
-          });
-        }, 200);
+          App.changeDay(dir);           // updates state + re-renders centre panel
+          // Reset to centre with no animation (adjacent panels will be updated)
+          setTrackX(0, false);
+        }, 280);
       } else {
-        // Snap back
-        panel.style.transition = 'transform 0.2s ease-out';
-        panel.style.transform  = 'translateX(0)';
+        // Snap back to centre
+        setTrackX(0, true);
       }
     }, { passive: true });
 
-    el.addEventListener('touchcancel', () => {
-      tracking = false;
-      if (panel) {
-        panel.style.transition = 'transform 0.2s ease-out';
-        panel.style.transform  = 'translateX(0)';
-      }
+    wrap.addEventListener('touchcancel', () => {
+      dragging = false;
+      setTrackX(0, true);
     }, { passive: true });
   }
 
   // ── Long-press to edit task ───────────────────────
+  // NOTE: passive:true on touchstart so scroll is never blocked.
+  // Text selection suppressed via CSS (user-select:none) + contextmenu preventDefault.
   const LONG_PRESS_MS = 600;
 
   function initLongPress() {
@@ -453,18 +471,17 @@ const UI = (() => {
 
     function cancel() {
       clearTimeout(timer);
+      timer = null;
       if (activeItem) {
         activeItem.classList.remove('long-pressing');
         activeItem = null;
       }
     }
 
+    // passive:true — scroll is fully preserved
     document.addEventListener('touchstart', e => {
       const item = e.target.closest('.schedule-item[data-id]');
       if (!item) return;
-
-      // Prevent text selection during long press
-      e.preventDefault();
 
       activeItem = item;
       startX = e.touches[0].clientX;
@@ -477,20 +494,27 @@ const UI = (() => {
         item.classList.remove('long-pressing');
         item.classList.add('long-press-done');
         setTimeout(() => item.classList.remove('long-press-done'), 400);
+        const id = activeItem.dataset.id;
         activeItem = null;
-        App.openTaskEditor(item.dataset.id);
+        timer = null;
+        App.openTaskEditor(id);
       }, LONG_PRESS_MS);
-    }, { passive: false }); // passive:false so we can preventDefault
+    }, { passive: true }); // passive:true — scroll works perfectly
 
     document.addEventListener('touchmove', e => {
       if (!activeItem) return;
       const dx = Math.abs(e.touches[0].clientX - startX);
       const dy = Math.abs(e.touches[0].clientY - startY);
-      if (dx > 10 || dy > 10) cancel();
+      if (dx > 8 || dy > 8) cancel();
     }, { passive: true });
 
     document.addEventListener('touchend',    cancel, { passive: true });
     document.addEventListener('touchcancel', cancel, { passive: true });
+
+    // Suppress native context menu (text selection popup) on task cards
+    document.addEventListener('contextmenu', e => {
+      if (e.target.closest('.schedule-item[data-id]')) e.preventDefault();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -500,6 +524,7 @@ const UI = (() => {
 
   return {
     renderHeader,
+    buildScheduleHtml,
     renderSchedule,
     renderInlineNotes,
     renderNotesTab,

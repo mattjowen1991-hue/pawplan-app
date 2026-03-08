@@ -805,14 +805,27 @@ body {
 /* Prevent text selection during long press */
 .schedule-item { -webkit-user-select: none; user-select: none; }
 
-/* ── Day swipe slide panel ─────────────────────────── */
+/* ── Day swipe carousel ────────────────────────────── */
 .schedule-slide-wrap {
-  overflow: hidden;   /* clips the panel as it flies off screen */
+  overflow: hidden;   /* clips panels as they fly off screen */
+  /* Allow vertical scroll through — touch events handled in JS */
 }
-.schedule-slide-panel {
+.carousel-track {
+  display: flex;
+  width: 300%;
   will-change: transform;
-  transform: translateX(0);
+  transform: translateX(-100%);  /* show middle panel by default */
 }
+.carousel-panel {
+  width: calc(100% / 3);
+  flex-shrink: 0;
+  /* Gap between panels reveals the green background */
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+/* First and last panels have no outer padding */
+.carousel-panel:first-child { padding-left: 0; padding-right: 6px; }
+.carousel-panel:last-child  { padding-left: 6px; padding-right: 0; }
 
 /* FAB group — two buttons stacked */
 .fab-group {

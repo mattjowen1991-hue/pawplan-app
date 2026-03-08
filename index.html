@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <title>PawPlan · Nova & Gloria</title>
-  <link rel="stylesheet" href="css/styles.css?v=10" />
+  <link rel="stylesheet" href="css/styles.css?v=11" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -119,9 +119,13 @@
           <div class="progress-label" id="progress-label">0 / 0 tasks</div>
         </div>
 
-        <div class="schedule-slide-wrap">
-          <div class="schedule-slide-panel" id="schedule-panel">
-            <div id="schedule-list"></div>
+        <div class="schedule-slide-wrap" id="schedule-slide-wrap">
+          <div class="carousel-track" id="carousel-track">
+            <div class="carousel-panel" id="panel-prev"></div>
+            <div class="carousel-panel" id="panel-current">
+              <div id="schedule-list"></div>
+            </div>
+            <div class="carousel-panel" id="panel-next"></div>
           </div>
         </div>
 
@@ -269,10 +273,10 @@
   </div>
 
   <!-- Scripts — order matters -->
-  <script src="js/schedule.js?v=10"></script>
-  <script src="js/db.js?v=10"></script>
-  <script src="js/ui.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/schedule.js?v=11"></script>
+  <script src="js/db.js?v=11"></script>
+  <script src="js/ui.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
 
   <!-- Register Service Worker for offline/PWA support -->
   <script>
