@@ -175,6 +175,10 @@ const App = (() => {
     await _loadAndRender(getDateStr());
   }
 
+  async function refreshCurrentDay() {
+    await _loadAndRender(getDateStr());
+  }
+
   // ── Task toggle ───────────────────────────────────
 
   async function toggleTask(itemId) {
@@ -325,6 +329,7 @@ const App = (() => {
     resetApp,
     changeDay,
     goToToday,
+    refreshCurrentDay,
     toggleTask,
     addNote,
     deleteNote,

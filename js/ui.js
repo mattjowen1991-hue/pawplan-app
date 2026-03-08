@@ -252,7 +252,7 @@ const UI = (() => {
     if (scheduleContent) scheduleContent.style.display = isSchedule ? '' : 'none';
     if (tabsContent)     tabsContent.style.display     = isSchedule ? 'none' : '';
 
-    if (tabId === 'schedule') App.goToToday();
+    if (tabId === 'schedule') App.refreshCurrentDay();
     if (tabId === 'stats') App.loadAndRenderStats();
   }
 
