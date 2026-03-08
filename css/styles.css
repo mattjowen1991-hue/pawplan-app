@@ -807,23 +807,30 @@ body {
 
 /* ── Day swipe carousel ────────────────────────────── */
 .schedule-slide-wrap {
-  overflow: hidden;   /* clips panels as they fly off screen */
-  /* Allow vertical scroll through — touch events handled in JS */
+  /* overflow:hidden would clip the adjacent panels during drag — */
+  /* instead we clip at the app level and let the track overflow visually */
+  overflow: visible;
+  position: relative;
+}
+/* Clip at the tab-content level instead */
+#tab-schedule {
+  overflow-x: hidden;
 }
 .carousel-track {
   display: flex;
   width: 300%;
   will-change: transform;
-  transform: translateX(-33.333%);  /* show middle panel (index 1) by default */
+  transform: translateX(-33.333%);
+  align-items: flex-start;
 }
 .carousel-panel {
   width: calc(100% / 3);
   flex-shrink: 0;
-  /* Gap between panels reveals the green background */
+  min-width: 0;
   padding: 0 6px;
   box-sizing: border-box;
+  align-self: flex-start;
 }
-/* First and last panels have no outer padding */
 .carousel-panel:first-child { padding-left: 0; padding-right: 6px; }
 .carousel-panel:last-child  { padding-left: 6px; padding-right: 0; }
 

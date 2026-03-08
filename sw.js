@@ -3,18 +3,23 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v15';
+const CACHE_NAME = 'pawplan-v16';
+const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
 // ── Install: skip waiting so new SW activates immediately ─
 self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// ── Activate: clear ALL old caches, claim clients ─────────
+// ── Activate: clear old APP caches only, keep CDN cache ───
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(keys => Promise.all(
+        keys
+          .filter(k => k !== CACHE_NAME && k !== CDN_CACHE)
+          .map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -36,7 +41,6 @@ self.addEventListener('fetch', event => {
   }
 
   // 2. HTML — network only, NEVER cache
-  //    Ensures index.html is always fresh so CSS/JS updates show immediately
   if (url.hostname === self.location.hostname &&
       (url.pathname.endsWith('.html') || url.pathname.endsWith('/'))) {
     event.respondWith(
@@ -45,7 +49,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 3. JS / CSS / assets — network-first, cache only as offline fallback
+  // 3. Own JS / CSS / assets — network-first, cache as offline fallback
   if (url.hostname === self.location.hostname) {
     event.respondWith(
       fetch(event.request)
@@ -61,16 +65,16 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 4. Google Fonts & CDN — cache-first (these never change)
+  // 4. Google Fonts & CDN — cache-first in separate persistent cache
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    })
+    caches.open(CDN_CACHE).then(cache =>
+      cache.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response.ok) cache.put(event.request, response.clone());
+          return response;
+        });
+      })
+    )
   );
 });
