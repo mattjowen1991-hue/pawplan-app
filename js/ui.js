@@ -230,6 +230,35 @@ const UI = (() => {
 
   // ── Task editor modal ─────────────────────────────
 
+  // ── Time spinner ──────────────────────────────────
+  const HOURS = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+  const MINS  = ['00','15','30','45'];
+  const AMPM  = ['AM','PM'];
+
+  function spinTime(field, dir) {
+    const el = document.getElementById(`task-time-${field}`);
+    const current = el.textContent.trim();
+    let list, idx;
+    if (field === 'hour') { list = HOURS; idx = HOURS.indexOf(current); }
+    if (field === 'min')  { list = MINS;  idx = MINS.indexOf(current); }
+    if (field === 'ampm') { list = AMPM;  idx = AMPM.indexOf(current); }
+    el.textContent = list[(idx + dir + list.length) % list.length];
+  }
+
+  function getTimeFromSpinners() {
+    const h    = document.getElementById('task-time-hour').textContent.trim();
+    const m    = document.getElementById('task-time-min').textContent.trim();
+    const ampm = document.getElementById('task-time-ampm').textContent.trim();
+    return `${h}:${m} ${ampm}`;
+  }
+
+  function setTimeSpinners(timeStr) {
+    const tm = timeStr && timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    document.getElementById('task-time-hour').textContent = tm ? String(parseInt(tm[1])) : '9';
+    document.getElementById('task-time-min').textContent  = tm ? tm[2].padStart(2,'0')  : '00';
+    document.getElementById('task-time-ampm').textContent = tm ? tm[3].toUpperCase()    : 'AM';
+  }
+
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');
     const isNew = !task || task._new;
@@ -239,18 +268,8 @@ const UI = (() => {
     document.getElementById('task-editor-desc').value  = task ? (task.desc || '') : '';
     document.getElementById('task-editor-id').value    = task ? task.id    : '';
 
-    // Parse existing time into picker selects
-    const timeStr = (task && task.time) ? task.time : '9:00 AM';
-    const tm = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (tm) {
-      document.getElementById('task-time-hour').value  = String(parseInt(tm[1]));
-      document.getElementById('task-time-min').value   = tm[2].padStart(2,'0');
-      document.getElementById('task-time-ampm').value  = tm[3].toUpperCase();
-    } else {
-      document.getElementById('task-time-hour').value  = '9';
-      document.getElementById('task-time-min').value   = '00';
-      document.getElementById('task-time-ampm').value  = 'AM';
-    }
+    // Set time spinners
+    setTimeSpinners(task ? task.time : '9:00 AM');
 
     const typeSelect = document.getElementById('task-editor-type');
     typeSelect.value = task ? (task.type || 'nova') : 'nova';
@@ -348,6 +367,8 @@ const UI = (() => {
     showSetup,
     showApp,
     getNoteInput,
+    spinTime,
+    getTimeFromSpinners,
   };
 
 })();

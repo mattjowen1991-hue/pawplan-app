@@ -149,11 +149,8 @@ const App = (() => {
     const dateStr = getDateStr();
     const id      = document.getElementById('task-editor-id').value || `custom_${Date.now()}`;
 
-    // Build time string from pickers
-    const hour  = document.getElementById('task-time-hour').value;
-    const min   = document.getElementById('task-time-min').value;
-    const ampm  = document.getElementById('task-time-ampm').value;
-    const time  = `${hour}:${min} ${ampm}`;
+    // Build time string from spinners
+    const time  = UI.getTimeFromSpinners();
 
     const title = document.getElementById('task-editor-label').value.trim();
     const desc  = document.getElementById('task-editor-desc').value.trim();

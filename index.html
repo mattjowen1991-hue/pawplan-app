@@ -227,26 +227,29 @@
 
       <label class="field-label">Time</label>
       <div class="time-picker-row">
-        <div class="time-picker-group">
+        <div class="time-spinner-group">
           <label class="time-picker-label">Hour</label>
-          <select class="field-input time-picker-select" id="task-time-hour">
-            <option>1</option><option>2</option><option>3</option><option>4</option>
-            <option>5</option><option>6</option><option>7</option><option>8</option>
-            <option>9</option><option>10</option><option>11</option><option>12</option>
-          </select>
+          <div class="time-spinner" id="spinner-hour">
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('hour',1)">▲</button>
+            <div class="spinner-val" id="task-time-hour">9</div>
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('hour',-1)">▼</button>
+          </div>
         </div>
-        <div class="time-picker-group">
+        <div class="time-spinner-group">
           <label class="time-picker-label">Min</label>
-          <select class="field-input time-picker-select" id="task-time-min">
-            <option value="00">00</option><option value="15">15</option>
-            <option value="30">30</option><option value="45">45</option>
-          </select>
+          <div class="time-spinner" id="spinner-min">
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('min',1)">▲</button>
+            <div class="spinner-val" id="task-time-min">00</div>
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('min',-1)">▼</button>
+          </div>
         </div>
-        <div class="time-picker-group">
-          <label class="time-picker-label">AM/PM</label>
-          <select class="field-input time-picker-select" id="task-time-ampm">
-            <option>AM</option><option>PM</option>
-          </select>
+        <div class="time-spinner-group">
+          <label class="time-picker-label">AM / PM</label>
+          <div class="time-spinner" id="spinner-ampm">
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('ampm',1)">▲</button>
+            <div class="spinner-val" id="task-time-ampm">AM</div>
+            <button type="button" class="spinner-btn" onclick="UI.spinTime('ampm',-1)">▼</button>
+          </div>
         </div>
       </div>
 

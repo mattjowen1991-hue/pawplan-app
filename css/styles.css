@@ -880,7 +880,7 @@ body.modal-open {
   display: flex;
   gap: 0.6rem;
 }
-.time-picker-group {
+.time-spinner-group {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -892,10 +892,40 @@ body.modal-open {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-}
-.time-picker-select {
   text-align: center;
-  padding: 0.65rem 0.4rem !important;
+}
+.time-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--cream);
+  border: 1.5px solid var(--sand);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.spinner-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.45rem 0;
+  font-size: 0.7rem;
+  color: var(--forest);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.1s;
+}
+.spinner-btn:active { background: var(--sand); }
+.spinner-val {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--midnight);
+  padding: 0.2rem 0;
+  min-width: 2.5rem;
+  text-align: center;
+  border-top: 1px solid var(--sand);
+  border-bottom: 1px solid var(--sand);
+  width: 100%;
 }
 
 /* Even spacing between Type → Save and Delete → bottom */
