@@ -620,6 +620,7 @@ const UI = (() => {
     buildScheduleHtml,
     renderSchedule,
     fitWrap: _fitWrapToCurrentPanel,
+    resetCarousel: () => setTrackPos(0, false),
     animateArrow,
     renderInlineNotes,
     renderNotesTab,

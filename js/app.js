@@ -177,6 +177,7 @@ const App = (() => {
 
   async function refreshCurrentDay() {
     await _loadAndRender(getDateStr());
+    UI.resetCarousel();
   }
 
   // ── Task toggle ───────────────────────────────────
