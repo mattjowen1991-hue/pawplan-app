@@ -487,11 +487,18 @@ const UI = (() => {
 
       if (isSwipe) {
         const dir = dx < 0 ? 1 : -1;
+        const panelW = wrap.clientWidth;
+        // Slide track to fully reveal the adjacent panel
+        setTrackPos(dir * -panelW, true);
         haptic('light');
-        // Instantly reset track, then change day — no snap animation
-        setTrackPos(0, false);
-        App.changeDay(dir);
+        setTimeout(() => {
+          // Snap back to centre instantly (no animation) BEFORE re-rendering
+          setTrackPos(0, false);
+          // Now change day — content swaps while track is already at centre
+          App.changeDay(dir);
+        }, 280);
       } else {
+        // Not a swipe — spring back to centre
         setTrackPos(0, true);
       }
     }, { passive: true });
