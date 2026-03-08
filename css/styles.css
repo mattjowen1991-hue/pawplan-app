@@ -807,14 +807,12 @@ body {
 
 /* ── Day swipe carousel ────────────────────────────── */
 .schedule-slide-wrap {
-  /* overflow:hidden would clip the adjacent panels during drag — */
-  /* instead we clip at the app level and let the track overflow visually */
-  overflow: visible;
-  position: relative;
-}
-/* Clip at the tab-content level instead */
-#tab-schedule {
-  overflow-x: hidden;
+  /* clip-path clips visually without creating an overflow scroll context */
+  /* This lets adjacent panels peek in during drag while hiding them at rest */
+  clip-path: inset(0);
+  /* Break out of .content side padding so panels span full width */
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
 }
 .carousel-track {
   display: flex;
@@ -827,12 +825,13 @@ body {
   width: calc(100% / 3);
   flex-shrink: 0;
   min-width: 0;
-  padding: 0 6px;
+  padding: 0 1.25rem;
   box-sizing: border-box;
   align-self: flex-start;
 }
-.carousel-panel:first-child { padding-left: 0; padding-right: 6px; }
-.carousel-panel:last-child  { padding-left: 6px; padding-right: 0; }
+/* 6px green gap visible between panels during swipe */
+.carousel-panel:first-child { padding-right: calc(1.25rem + 6px); }
+.carousel-panel:last-child  { padding-left:  calc(1.25rem + 6px); }
 
 /* FAB group — two buttons stacked */
 .fab-group {

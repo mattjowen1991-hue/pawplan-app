@@ -50,16 +50,15 @@ const App = (() => {
 
     const { ok, message } = await DB.testConnection();
     if (!ok) {
-      alert(`Couldn't connect to Supabase.\n\n${message}\n\nCheck your URL and Anon Key.`);
+      // Clear bad config so user isn't stuck in a loop
+      localStorage.removeItem('pawplan_config');
+      alert(`Couldn't connect to Supabase.\n\n${message}\n\nPlease re-enter your details.`);
       UI.showSetup();
       return;
     }
 
     UI.showApp(cfg.username);
-
-    // Load today
     await _loadAndRender(getDateStr());
-
     UI.hideLoading();
   }
 

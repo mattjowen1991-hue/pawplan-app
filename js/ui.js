@@ -342,6 +342,9 @@ const UI = (() => {
   function showSetup() {
     hideLoading();
     document.getElementById('setup-screen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    const fabGroup = document.getElementById('fab-group');
+    if (fabGroup) fabGroup.classList.add('hidden');
   }
 
   function showApp(username) {
@@ -350,7 +353,6 @@ const UI = (() => {
     document.getElementById('settings-name').textContent = username;
     const fabGroup = document.getElementById('fab-group');
     if (fabGroup) fabGroup.classList.remove('hidden');
-    // legacy fallback
     const fab = document.getElementById('fab');
     if (fab) fab.classList.remove('hidden');
   }
