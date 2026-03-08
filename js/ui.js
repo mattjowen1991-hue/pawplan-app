@@ -111,6 +111,19 @@ const UI = (() => {
       `${done} / ${total} tasks completed · ${pct}%`;
 
     document.getElementById('schedule-list').innerHTML = buildScheduleHtml(dateStr, tasksMap, customTasks);
+    _fitWrapToCurrentPanel();
+  }
+
+  // Clamp the carousel wrap height to the current panel so adjacent
+  // taller panels don't create dead space below the last task card.
+  function _fitWrapToCurrentPanel() {
+    const wrap    = document.getElementById('schedule-slide-wrap');
+    const current = document.getElementById('panel-current');
+    if (!wrap || !current) return;
+    // Let it reflow first, then snapshot the height
+    requestAnimationFrame(() => {
+      wrap.style.height = current.offsetHeight + 'px';
+    });
   }
 
   // ── Notes (inline & tab) ──────────────────────────
@@ -543,6 +556,7 @@ const UI = (() => {
     renderHeader,
     buildScheduleHtml,
     renderSchedule,
+    fitWrap: _fitWrapToCurrentPanel,
     renderInlineNotes,
     renderNotesTab,
     renderStats,

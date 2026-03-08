@@ -3,7 +3,7 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v24';
+const CACHE_NAME = 'pawplan-v25';
 const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
 // ── Install: skip waiting so new SW activates immediately ─
