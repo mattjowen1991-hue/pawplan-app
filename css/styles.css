@@ -862,8 +862,7 @@ body {
 /* Prevent background page scrolling when modal is open */
 body.modal-open {
   overflow: hidden;
-  position: fixed;
-  width: 100%;
+  touch-action: none;
 }
 
 /* Keyboard-aware: shift modal to top so fields stay visible */
