@@ -107,7 +107,6 @@ const DB = (() => {
         .eq('date', dateStr)
         .eq('type', 'task')
         .eq('item_id', itemId)
-        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       if (data) {
@@ -171,7 +170,6 @@ const DB = (() => {
         .eq('date', dateStr)
         .in('type', ['custom_task', 'task_override'])
         .eq('item_id', task.id)
-        .eq('user_id', currentUser.id)
         .maybeSingle();
 
       const payload = {
