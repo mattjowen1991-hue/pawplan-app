@@ -68,26 +68,11 @@ const Schedule = (() => {
 
   // ── Schedule sections ─────────────────────────────
   const SECTIONS = [
-    {
-      label: '🌅 Early Morning (5–8AM)',
-      match: (t) => ['5:00','6:00','7:00','7:30','8:30'].some(p => t.startsWith(p)),
-    },
-    {
-      label: '☀️ Morning Shift (9AM–12PM)',
-      match: (t) => t.startsWith('9:') || t.startsWith('10:') || t.startsWith('11:'),
-    },
-    {
-      label: '🌤 Afternoon (12PM–3PM)',
-      match: (t) => t.startsWith('12:') || t.startsWith('1:') || t.startsWith('2:') || t.startsWith('3:1'),
-    },
-    {
-      label: '🌆 Late Afternoon (3:30–6PM)',
-      match: (t) => t.startsWith('3:3') || t.startsWith('4:') || t.startsWith('5:') || t.startsWith('6:'),
-    },
-    {
-      label: '🌙 Evening',
-      match: (t) => t.startsWith('7:') || t.startsWith('8:') || t.startsWith('9:') || t.startsWith('10:'),
-    },
+    { label: '🌅 Early Morning (5–8AM)',       min: 5*60,  max: 8*60  },
+    { label: '☀️ Morning Shift (9AM–12PM)',     min: 9*60,  max: 12*60 },
+    { label: '🌤 Afternoon (12PM–3PM)',         min: 12*60, max: 15*60 },
+    { label: '🌆 Late Afternoon (3:30–6PM)',    min: 15*60, max: 18*60 },
+    { label: '🌙 Evening',                      min: 18*60, max: 24*60 },
   ];
 
   // ── Item definitions ──────────────────────────────

@@ -68,7 +68,10 @@ const UI = (() => {
     let html = '';
 
     Schedule.SECTIONS.forEach(section => {
-      const sectionItems = items.filter(item => section.match(item.time));
+      const sectionItems = items.filter(item => {
+        const mins = Schedule.parseTimeToMinutes(item.time);
+        return mins >= section.min && mins < section.max;
+      });
       if (!sectionItems.length) return;
 
       html += `<div class="schedule-section">
