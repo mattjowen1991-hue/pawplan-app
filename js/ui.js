@@ -252,6 +252,7 @@ const UI = (() => {
     if (scheduleContent) scheduleContent.style.display = isSchedule ? '' : 'none';
     if (tabsContent)     tabsContent.style.display     = isSchedule ? 'none' : '';
 
+    if (tabId === 'schedule') App.goToToday();
     if (tabId === 'stats') App.loadAndRenderStats();
   }
 
@@ -567,9 +568,51 @@ const UI = (() => {
     });
   }
 
+  function initNotesSwipe() {
+    const el = document.getElementById('tab-notes');
+    if (!el) return;
+
+    let startX = 0, startY = 0, startTime = 0;
+    let dragging = false, locked = false;
+
+    el.addEventListener('touchstart', e => {
+      if (e.target.closest('textarea,input,button')) return;
+      startX    = e.touches[0].clientX;
+      startY    = e.touches[0].clientY;
+      startTime = Date.now();
+      dragging  = true;
+      locked    = false;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (!locked) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+      if (locked === 'h') e.preventDefault();
+    }, { passive: false });
+
+    el.addEventListener('touchend', e => {
+      if (!dragging) return;
+      dragging = false;
+      if (locked !== 'h') return;
+      const dx      = e.changedTouches[0].clientX - startX;
+      const elapsed = Date.now() - startTime;
+      if (Math.abs(dx) > 50 && elapsed < 400) {
+        const dir = dx < 0 ? 1 : -1;
+        haptic('light');
+        App.changeDay(dir);
+      }
+    }, { passive: true });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     initSwipe();
     initLongPress();
+    initNotesSwipe();
   });
 
   return {

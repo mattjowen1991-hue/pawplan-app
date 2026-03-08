@@ -169,6 +169,12 @@ const App = (() => {
     await _loadAndRender(dateStr);
   }
 
+  async function goToToday() {
+    if (dayOffset === 0) return; // already on today, no need to re-render
+    dayOffset = 0;
+    await _loadAndRender(getDateStr());
+  }
+
   // ── Task toggle ───────────────────────────────────
 
   async function toggleTask(itemId) {
@@ -318,6 +324,7 @@ const App = (() => {
     authSignOut,
     resetApp,
     changeDay,
+    goToToday,
     toggleTask,
     addNote,
     deleteNote,
