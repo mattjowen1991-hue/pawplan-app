@@ -29,7 +29,10 @@
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-tap-highlight-color: transparent; }
+html {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-x: none; /* prevent Android/iOS swipe-back navigation gesture */
+}
 
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
@@ -37,6 +40,7 @@ body {
   color: var(--midnight);
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior-x: none; /* belt-and-braces: block swipe-back on body too */
   -webkit-font-smoothing: antialiased;
 }
 
