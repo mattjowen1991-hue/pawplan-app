@@ -341,7 +341,8 @@ const UI = (() => {
 
   function handleTaskEditorOverlay(event) {
     if (event.target === event.currentTarget) {
-      history.back(); // triggers popstate → closeTaskEditor
+      closeTaskEditor();
+      history.replaceState({ base: true }, '');
     }
   }
 
@@ -352,7 +353,7 @@ const UI = (() => {
     if (!m) return;
     m.classList.add('open');
     document.body.classList.add('modal-open');
-    setTrackPos(0, false);  // ← snap carousel to centre
+    setTrackPos(0, false);
     pushModalHistory();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
@@ -368,7 +369,8 @@ const UI = (() => {
 
   function handleModalOverlayClick(event) {
     if (event.target === event.currentTarget) {
-      history.back(); // triggers popstate → closeModal
+      closeModal();
+      history.replaceState({ base: true }, '');
     }
   }
 
