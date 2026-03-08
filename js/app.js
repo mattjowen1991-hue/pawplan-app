@@ -119,18 +119,38 @@ const App = (() => {
 
     const adjDate = _offsetDate(currentDateStr, delta);
 
-    // Load from cache or DB (lightweight — tasks + custom only, no notes)
-    if (!tasksCache[adjDate]) {
+    // Render immediately with whatever we have (static schedule, no completion state yet)
+    // This means the panel is visible right away when the user starts swiping
+    panelEl.innerHTML = UI.buildScheduleHtml(
+      adjDate,
+      tasksCache[adjDate] || {},
+      customTasksCache[adjDate] || []
+    );
+
+    // Then load from DB in the background and patch if anything changed
+    const needsTasks  = !tasksCache[adjDate];
+    const needsCustom = !customTasksCache[adjDate];
+
+    if (needsTasks) {
       const { tasks, notes } = await DB.loadDay(adjDate);
-      tasksCache[adjDate] = tasks;
-      notesCache[adjDate] = notes;
+      tasksCache[adjDate]  = tasks;
+      notesCache[adjDate]  = notes;
     }
-    if (!customTasksCache[adjDate]) {
+    if (needsCustom) {
       customTasksCache[adjDate] = await DB.loadCustomTasks(adjDate);
     }
 
-    // Build a mini schedule HTML for the adjacent panel (no DOM side-effects)
-    panelEl.innerHTML = UI.buildScheduleHtml(adjDate, tasksCache[adjDate], customTasksCache[adjDate]);
+    // Only re-render if we actually fetched new data (avoids flicker if cached)
+    if (needsTasks || needsCustom) {
+      // Check panel is still the right one (user might have swiped again)
+      if (document.getElementById(`panel-${which}`) === panelEl) {
+        panelEl.innerHTML = UI.buildScheduleHtml(
+          adjDate,
+          tasksCache[adjDate],
+          customTasksCache[adjDate]
+        );
+      }
+    }
   }
 
   // ── Day navigation ────────────────────────────────
