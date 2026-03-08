@@ -289,31 +289,34 @@ const UI = (() => {
     return `${h}:${m} ${ampm}`;
   }
 
-  // ── Android back button handler ───────────────────
-  // We do NOT use history.pushState/hash at all — any history entry causes
-  // Android Chrome to play its native full-page swipe-back animation.
-  // Instead we use the Navigation API (Chrome 102+) to intercept back
-  // without adding any history entry. On older browsers the hardware
-  // back button will close the PWA, which is acceptable.
+  // ── Android back button/gesture handler ──────────
+  // Strategy: use replaceState (NOT pushState) to tag the current history
+  // entry as "modal open". This means:
+  // - There is NO new history entry, so Chrome has nowhere to slide back to
+  //   → no page-slide animation
+  // - popstate still fires when the user presses back, because Chrome
+  //   detects the state change and fires the event
+  // - We catch popstate, close the modal, and replaceState back to base
+  //   so the app stays in place
 
-  function _initBackHandler() {
-    if ('navigation' in window) {
-      navigation.addEventListener('navigate', e => {
-        if (e.navigationType !== 'traverse') return;
-        const taskModal = document.getElementById('task-editor-modal');
-        const noteModal = document.getElementById('note-modal');
-        if ((taskModal && taskModal.classList.contains('open')) ||
-            (noteModal && noteModal.classList.contains('open'))) {
-          e.intercept({ handler: async () => {
-            if (taskModal && taskModal.classList.contains('open')) closeTaskEditor();
-            else if (noteModal && noteModal.classList.contains('open')) closeModal();
-          }});
-        }
-      });
-    }
+  function markModalOpen() {
+    history.replaceState({ modal: true }, '');
   }
 
-  _initBackHandler();
+  function markModalClosed() {
+    history.replaceState({ base: true }, '');
+  }
+
+  window.addEventListener('popstate', e => {
+    // If we have a modal open and state says modal (or no state), close it
+    const taskModal = document.getElementById('task-editor-modal');
+    const noteModal = document.getElementById('note-modal');
+    if (taskModal && taskModal.classList.contains('open')) {
+      closeTaskEditor();
+    } else if (noteModal && noteModal.classList.contains('open')) {
+      closeModal();
+    }
+  });
 
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');
@@ -335,11 +338,13 @@ const UI = (() => {
     document.body.classList.add('modal-open');
     modal.classList.add('open');
     setTrackPos(0, false);
+    markModalOpen();
   }
 
   function closeTaskEditor() {
     document.getElementById('task-editor-modal').classList.remove('open');
     document.body.classList.remove('modal-open');
+    markModalClosed();
   }
 
   function handleTaskEditorOverlay(event) {
@@ -356,6 +361,7 @@ const UI = (() => {
     m.classList.add('open');
     document.body.classList.add('modal-open');
     setTrackPos(0, false);
+    markModalOpen();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
 
@@ -366,6 +372,7 @@ const UI = (() => {
     document.body.classList.remove('modal-open');
     const t = document.getElementById('modal-note-text');
     if (t) t.value = '';
+    markModalClosed();
   }
 
   function handleModalOverlayClick(event) {
