@@ -130,26 +130,27 @@ const App = (() => {
   // ── Task editor ───────────────────────────────────
 
   function openTaskEditor(itemId) {
-    const dateStr = getDateStr();
-    const custom  = customTasksCache[dateStr] || [];
-
-    // Try to find an existing custom/override task first
-    let task = custom.find(t => t.id === itemId);
-
-    if (!task) {
-      // It's a built-in — find it in base schedule as the starting point
-      const base = Schedule.getItems(dateStr);
-      const base_item = base.find(i => i.id === itemId);
-      if (base_item) {
-        task = { ...base_item, _override: false, _isNew: false };
+    try {
+      const dateStr = getDateStr();
+      const custom  = customTasksCache[dateStr] || [];
+      let task = custom.find(t => t.id === itemId);
+      if (!task) {
+        const base = Schedule.getItems(dateStr);
+        const base_item = base.find(i => i.id === itemId);
+        if (base_item) task = { ...base_item, _override: false, _isNew: false };
       }
+      UI.openTaskEditor(task || { id: itemId, _new: true });
+    } catch(e) {
+      alert('openTaskEditor error: ' + e.message);
     }
-
-    UI.openTaskEditor(task || { id: itemId, _new: true });
   }
 
   function openNewTaskEditor() {
-    UI.openTaskEditor({ _new: true, id: `custom_${Date.now()}`, _isNew: true });
+    try {
+      UI.openTaskEditor({ _new: true, id: `custom_${Date.now()}`, _isNew: true });
+    } catch(e) {
+      alert('openNewTaskEditor error: ' + e.message);
+    }
   }
 
   async function saveTaskEdit() {
