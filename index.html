@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <title>PawPlan · Nova & Gloria</title>
-  <link rel="stylesheet" href="css/styles.css?v=12" />
+  <link rel="stylesheet" href="css/styles.css?v=14" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -128,18 +128,6 @@
             <div class="carousel-panel" id="panel-next"></div>
           </div>
         </div>
-
-        <div class="card notes-card">
-          <div class="notes-header">
-            <h3 class="notes-title">Day Notes</h3>
-            <span class="notes-count" id="inline-note-count"></span>
-          </div>
-          <div id="inline-notes-list"></div>
-          <div class="note-input-row">
-            <input class="note-input" type="text" id="inline-note-input" placeholder="Add a note for today…" />
-            <button class="note-send-btn" onclick="App.addNote('inline')">Add</button>
-          </div>
-        </div>
       </section>
 
       <!-- ── NOTES TAB ── -->
@@ -207,18 +195,7 @@
        NOTE MODAL (FAB)
   ════════════════════════════════════════════ -->
   <div class="fab-group" id="fab-group">
-    <button class="fab fab-note" id="fab" onclick="UI.openModal()" aria-label="Add note">✏️</button>
     <button class="fab fab-task" onclick="App.openNewTaskEditor()" aria-label="Add task">＋</button>
-  </div>
-
-  <div class="modal-overlay" id="note-modal" onclick="UI.handleModalOverlayClick(event)">
-    <div class="modal">
-      <div class="modal-handle"></div>
-      <h2 class="modal-title">💬 Quick Note</h2>
-      <p class="modal-desc">Leave a note for your partner about today — Nova's behaviour, wins, anything important.</p>
-      <textarea class="note-textarea" id="modal-note-text" placeholder="e.g. Nova settled brilliantly during lunch chat today 🎉 Used the frozen Kong trick!"></textarea>
-      <button class="btn-primary" onclick="App.addNote('modal')">Save Note</button>
-    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════
@@ -273,10 +250,10 @@
   </div>
 
   <!-- Scripts — order matters -->
-  <script src="js/schedule.js?v=12"></script>
-  <script src="js/db.js?v=12"></script>
-  <script src="js/ui.js?v=12"></script>
-  <script src="js/app.js?v=12"></script>
+  <script src="js/schedule.js?v=14"></script>
+  <script src="js/db.js?v=14"></script>
+  <script src="js/ui.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
 
   <!-- Register Service Worker for offline/PWA support -->
   <script>
