@@ -3,12 +3,16 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v38';
+const CACHE_NAME = 'pawplan-v39';
 const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
-// ── Install: skip waiting so new SW activates immediately ─
+// ── Install: cache index.html immediately, skip waiting ───
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.add('/pawplan-app/index.html'))
+      .then(() => self.skipWaiting())
+  );
 });
 
 // ── Activate: clear old APP caches only, keep CDN cache ───
@@ -40,11 +44,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 2. HTML — network only, NEVER cache
-  if (url.hostname === self.location.hostname &&
-      (url.pathname.endsWith('.html') || url.pathname.endsWith('/'))) {
+  // 2. Navigation requests within app scope — always serve index.html (SPA fallback)
+  //    This means swipe-back / back button always lands on the app, not a broken URL
+  if (event.request.mode === 'navigate' && url.pathname.startsWith('/pawplan-app')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      caches.match('/pawplan-app/index.html')
+        .then(cached => cached || fetch('/pawplan-app/index.html'))
     );
     return;
   }

@@ -289,9 +289,9 @@ const UI = (() => {
     return `${h}:${m} ${ampm}`;
   }
 
-  // ── No history API used for modals ───────────────
-  // Chrome's back gesture navigates through real history entries.
-  // We don't add any — modals close via the ✕ button or tapping the overlay.
+  // ── No history API for modals ────────────────────
+  // Swipe-back is intentionally disabled for modals.
+  // Close via the ✕ button or tapping outside the modal sheet.
   function markModalOpen() {}
   function markModalClosed() {}
 
