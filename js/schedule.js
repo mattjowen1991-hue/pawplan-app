@@ -68,11 +68,11 @@ const Schedule = (() => {
 
   // ── Schedule sections ─────────────────────────────
   const SECTIONS = [
-    { label: '🌅 Early Morning (5–8AM)',       min: 5*60,  max: 8*60  },
-    { label: '☀️ Morning Shift (9AM–12PM)',     min: 9*60,  max: 12*60 },
-    { label: '🌤 Afternoon (12PM–3PM)',         min: 12*60, max: 15*60 },
-    { label: '🌆 Late Afternoon (3:30–6PM)',    min: 15*60, max: 18*60 },
-    { label: '🌙 Evening',                      min: 18*60, max: 24*60 },
+    { label: '🌅 Early Morning (5–9AM)',       min: 0,     max: 9*60   },
+    { label: '☀️ Morning Shift (9AM–12PM)',     min: 9*60,  max: 12*60  },
+    { label: '🌤 Afternoon (12PM–3:30PM)',      min: 12*60, max: 15*60+30 },
+    { label: '🌆 Late Afternoon (3:30–6PM)',    min: 15*60+30, max: 18*60 },
+    { label: '🌙 Evening (6PM+)',               min: 18*60, max: 24*60+59 },
   ];
 
   // ── Item definitions ──────────────────────────────
