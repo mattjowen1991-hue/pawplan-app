@@ -379,9 +379,10 @@ const UI = (() => {
   }
 
   // ── Three-panel carousel swipe ────────────────────
-  // Three panels sit side-by-side: [prev][current][next]
-  // The wrap is 300% wide; we translate to show the middle panel.
-  // While dragging all three move together so you peek into the adjacent day.
+  // Three panels [prev=0][current=1][next=2] in a 300%-wide track.
+  // Panel width = 1/3 of track = 100% of viewport wrap.
+  // To show panel at index i: translateX(-i * 33.333%)
+  // So "current" (index 1) sits at translateX(-33.333%)
 
   function initSwipe() {
     const wrap = document.getElementById('schedule-slide-wrap');
@@ -390,23 +391,26 @@ const UI = (() => {
     let startX = 0, startY = 0, startTime = 0;
     let dragging = false, locked = false;
 
-    function setTrackX(px, animated) {
+    // pos is the extra pixel offset from the resting centre position
+    function setTrackPos(extraPx, animated) {
       const track = document.getElementById('carousel-track');
       if (!track) return;
-      track.style.transition = animated ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
-      // Middle panel starts at -100% (one panel width); px is the drag delta
-      track.style.transform = `translateX(calc(-100% + ${px}px))`;
+      track.style.transition = animated
+        ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)'
+        : 'none';
+      // -33.333% centres on panel 1 (current); extraPx is drag offset
+      track.style.transform = `translateX(calc(-33.333% + ${extraPx}px))`;
     }
 
     wrap.addEventListener('touchstart', e => {
       if (document.querySelector('.modal-overlay.open')) return;
-      if (e.target.closest('select,input,textarea,button,textarea')) return;
+      if (e.target.closest('select,input,textarea,button')) return;
       startX    = e.touches[0].clientX;
       startY    = e.touches[0].clientY;
       startTime = Date.now();
       dragging  = true;
       locked    = false;
-      setTrackX(0, false);
+      setTrackPos(0, false);
     }, { passive: true });
 
     wrap.addEventListener('touchmove', e => {
@@ -415,17 +419,13 @@ const UI = (() => {
       const dy = e.touches[0].clientY - startY;
 
       if (!locked) {
-        // Decide axis after 8px of movement
         if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
         locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       }
 
       if (locked === 'h') {
-        // Rubber-band at edges
-        const bounded = dx * 0.92;
-        setTrackX(bounded, false);
+        setTrackPos(dx * 0.92, false);
       }
-      // If locked vertical, don't touch the track — let browser scroll
     }, { passive: true });
 
     wrap.addEventListener('touchend', e => {
@@ -438,24 +438,25 @@ const UI = (() => {
       const isSwipe = Math.abs(dx) > 50 && elapsed < 400;
 
       if (isSwipe) {
-        const dir = dx < 0 ? 1 : -1;   // +1 = next day, -1 = prev day
-        // Snap to adjacent panel
-        setTrackX(dir * -wrap.clientWidth, true);
+        // dx < 0 = swipe left = next day (+1); dx > 0 = swipe right = prev day (-1)
+        const dir = dx < 0 ? 1 : -1;
+        // Snap to adjacent panel: offset by one panel width = wrap.clientWidth
+        setTrackPos(dir * -wrap.clientWidth, true);
         haptic('light');
         setTimeout(() => {
-          App.changeDay(dir);           // updates state + re-renders centre panel
-          // Reset to centre with no animation (adjacent panels will be updated)
-          setTrackX(0, false);
+          // Update state — this re-renders centre + pre-renders new adjacent panels
+          App.changeDay(dir);
+          // Instantly reset to centre (no animation) so new content is in view
+          setTrackPos(0, false);
         }, 280);
       } else {
-        // Snap back to centre
-        setTrackX(0, true);
+        setTrackPos(0, true);
       }
     }, { passive: true });
 
     wrap.addEventListener('touchcancel', () => {
       dragging = false;
-      setTrackX(0, true);
+      setTrackPos(0, true);
     }, { passive: true });
   }
 

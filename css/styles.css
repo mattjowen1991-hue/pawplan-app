@@ -814,7 +814,7 @@ body {
   display: flex;
   width: 300%;
   will-change: transform;
-  transform: translateX(-100%);  /* show middle panel by default */
+  transform: translateX(-33.333%);  /* show middle panel (index 1) by default */
 }
 .carousel-panel {
   width: calc(100% / 3);
