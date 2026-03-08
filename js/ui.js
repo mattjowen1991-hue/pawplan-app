@@ -252,6 +252,26 @@ const UI = (() => {
     return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   }
 
+  // ── Android back gesture handler ─────────────────
+  // Push a history entry when any modal opens so the back gesture
+  // closes the modal instead of exiting the PWA
+  function pushModalHistory() {
+    history.pushState({ modal: true }, '');
+  }
+
+  function handlePopState() {
+    // If a modal is open, close it — don't navigate away
+    const taskModal = document.getElementById('task-editor-modal');
+    const noteModal = document.getElementById('note-modal');
+    if (taskModal && taskModal.classList.contains('open')) {
+      closeTaskEditor();
+    } else if (noteModal && noteModal.classList.contains('open')) {
+      closeModal();
+    }
+  }
+
+  window.addEventListener('popstate', handlePopState);
+
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');
     const isNew = !task || task._new;
@@ -261,7 +281,6 @@ const UI = (() => {
     document.getElementById('task-editor-desc').value  = task ? (task.desc || '') : '';
     document.getElementById('task-editor-id').value    = task ? task.id    : '';
 
-    // Set time spinners
     setTimeSpinners(task ? task.time : '9:00 AM');
 
     const typeSelect = document.getElementById('task-editor-type');
@@ -270,9 +289,9 @@ const UI = (() => {
     const deleteBtn = document.getElementById('task-editor-delete');
     if (deleteBtn) deleteBtn.style.display = (task && (task._isNew || task._override)) ? 'block' : 'none';
 
-    // Lock background scroll
     document.body.classList.add('modal-open');
     modal.classList.add('open');
+    pushModalHistory();
   }
 
   function closeTaskEditor() {
@@ -281,7 +300,9 @@ const UI = (() => {
   }
 
   function handleTaskEditorOverlay(event) {
-    if (event.target === event.currentTarget) closeTaskEditor();
+    if (event.target === event.currentTarget) {
+      history.back(); // triggers popstate → closeTaskEditor
+    }
   }
 
   // ── Modal ─────────────────────────────────────────
@@ -289,6 +310,7 @@ const UI = (() => {
   function openModal() {
     document.getElementById('note-modal').classList.add('open');
     document.body.classList.add('modal-open');
+    pushModalHistory();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
 
@@ -299,7 +321,9 @@ const UI = (() => {
   }
 
   function handleModalOverlayClick(event) {
-    if (event.target === event.currentTarget) closeModal();
+    if (event.target === event.currentTarget) {
+      history.back(); // triggers popstate → closeModal
+    }
   }
 
   // ── Loading ───────────────────────────────────────
