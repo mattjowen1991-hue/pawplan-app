@@ -413,23 +413,35 @@ const UI = (() => {
   // To show panel at index i: translateX(-i * 33.333%)
   // So "current" (index 1) sits at translateX(-33.333%)
 
+  // Module-scoped so arrow buttons can trigger the same animation
+  function setTrackPos(extraPx, animated) {
+    const track = document.getElementById('carousel-track');
+    if (!track) return;
+    track.style.transition = animated
+      ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)'
+      : 'none';
+    track.style.transform = `translateX(calc(-33.333% + ${extraPx}px))`;
+  }
+
+  // Called by the ‹ › arrow buttons — peek adjacent panel then snap back
+  function animateArrow(dir) {
+    const wrap = document.getElementById('schedule-slide-wrap');
+    if (!wrap) return;
+    const peekPx = wrap.clientWidth * 0.55 * -dir; // peek ~55% across
+    setTrackPos(peekPx, true);
+    haptic('light');
+    setTimeout(() => {
+      App.changeDay(dir);
+      setTrackPos(0, false);
+    }, 280);
+  }
+
   function initSwipe() {
     const wrap = document.getElementById('schedule-slide-wrap');
     if (!wrap) return;
 
     let startX = 0, startY = 0, startTime = 0;
     let dragging = false, locked = false;
-
-    // pos is the extra pixel offset from the resting centre position
-    function setTrackPos(extraPx, animated) {
-      const track = document.getElementById('carousel-track');
-      if (!track) return;
-      track.style.transition = animated
-        ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)'
-        : 'none';
-      // -33.333% centres on panel 1 (current); extraPx is drag offset
-      track.style.transform = `translateX(calc(-33.333% + ${extraPx}px))`;
-    }
 
     wrap.addEventListener('touchstart', e => {
       if (document.querySelector('.modal-overlay.open')) return;
@@ -557,6 +569,7 @@ const UI = (() => {
     buildScheduleHtml,
     renderSchedule,
     fitWrap: _fitWrapToCurrentPanel,
+    animateArrow,
     renderInlineNotes,
     renderNotesTab,
     renderStats,

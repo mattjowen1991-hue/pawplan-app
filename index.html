@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <title>PawPlan · Nova & Gloria</title>
-  <link rel="stylesheet" href="css/styles.css?v=25" />
+  <link rel="stylesheet" href="css/styles.css?v=26" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -104,12 +104,12 @@
       <!-- ── SCHEDULE TAB ── -->
       <section class="tab-content active" id="tab-schedule">
         <div class="day-nav">
-          <button class="day-nav-btn" onclick="App.changeDay(-1)" aria-label="Previous day">‹</button>
+          <button class="day-nav-btn" onclick="UI.animateArrow(-1)" aria-label="Previous day">‹</button>
           <div class="day-nav-center">
             <div class="day-nav-label" id="day-nav-label">Today</div>
             <div class="day-nav-sub" id="day-nav-sub">Day 1 of 365</div>
           </div>
-          <button class="day-nav-btn" onclick="App.changeDay(1)" aria-label="Next day">›</button>
+          <button class="day-nav-btn" onclick="UI.animateArrow(1)" aria-label="Next day">›</button>
         </div>
 
         <div class="progress-wrap">
@@ -256,10 +256,10 @@
   </div>
 
   <!-- Scripts — order matters -->
-  <script src="js/schedule.js?v=25"></script>
-  <script src="js/db.js?v=25"></script>
-  <script src="js/ui.js?v=25"></script>
-  <script src="js/app.js?v=25"></script>
+  <script src="js/schedule.js?v=26"></script>
+  <script src="js/db.js?v=26"></script>
+  <script src="js/ui.js?v=26"></script>
+  <script src="js/app.js?v=26"></script>
 
   <!-- Register Service Worker for offline/PWA support -->
   <script>
