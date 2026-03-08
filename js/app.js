@@ -36,12 +36,6 @@ const App = (() => {
   }
 
   async function init() {
-    // Push a sentinel entry behind the app so Android's back gesture always
-    // has somewhere to go — popstate fires, we close any open modal or
-    // immediately re-push the sentinel so the app never exits.
-    history.replaceState({ pawplan: 'base' }, '');
-    history.pushState({ pawplan: 'app' }, '');
-
     DB.init();
 
     // Check for existing Supabase session — auto-login if token still valid

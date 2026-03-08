@@ -289,34 +289,11 @@ const UI = (() => {
     return `${h}:${m} ${ampm}`;
   }
 
-  // ── Android back button/gesture handler ──────────
-  // On init, app.js pushes a sentinel history entry so there's always
-  // something behind the current state for back to go to.
-  // When popstate fires:
-  //   - If a modal is open → close it, re-push sentinel
-  //   - If no modal → re-push sentinel (prevents app exit)
-  // replaceState is used for modal state tagging so there's no extra
-  // entry for Chrome to slide back through with animation.
-
-  function markModalOpen() {
-    history.replaceState({ pawplan: 'modal' }, '');
-  }
-
-  function markModalClosed() {
-    history.replaceState({ pawplan: 'app' }, '');
-  }
-
-  window.addEventListener('popstate', () => {
-    const taskModal = document.getElementById('task-editor-modal');
-    const noteModal = document.getElementById('note-modal');
-    if (taskModal && taskModal.classList.contains('open')) {
-      closeTaskEditor();
-    } else if (noteModal && noteModal.classList.contains('open')) {
-      closeModal();
-    }
-    // Always re-push the sentinel so back never exits the app
-    history.pushState({ pawplan: 'app' }, '');
-  });
+  // ── No history API used for modals ───────────────
+  // Chrome's back gesture navigates through real history entries.
+  // We don't add any — modals close via the ✕ button or tapping the overlay.
+  function markModalOpen() {}
+  function markModalClosed() {}
 
   function openTaskEditor(task) {
     const modal = document.getElementById('task-editor-modal');

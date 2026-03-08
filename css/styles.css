@@ -943,6 +943,20 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Left-edge touch blocker: covers Chrome's swipe-back zone when modal open.
+   Chrome's back gesture is triggered from ~20px on the left edge.
+   This transparent element sits on top and consumes those touches. */
+body.modal-open::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 100%;
+  z-index: 9999;
+  touch-action: none;
+}
+
 /* Keyboard-aware: shift modal to top so fields stay visible */
 .modal-overlay.open {
   align-items: flex-end;
