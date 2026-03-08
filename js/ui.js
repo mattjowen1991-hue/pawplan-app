@@ -330,6 +330,7 @@ const UI = (() => {
 
     document.body.classList.add('modal-open');
     modal.classList.add('open');
+    setTrackPos(0, false);  // ← snap carousel to centre so blur overlay has nothing to inherit
     pushModalHistory();
   }
 
@@ -351,6 +352,7 @@ const UI = (() => {
     if (!m) return;
     m.classList.add('open');
     document.body.classList.add('modal-open');
+    setTrackPos(0, false);  // ← snap carousel to centre
     pushModalHistory();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
@@ -435,8 +437,13 @@ const UI = (() => {
     track.style.transform = `translateX(calc(-33.333% + ${extraPx}px))`;
   }
 
+  function isModalOpen() {
+    return !!document.querySelector('.modal-overlay.open');
+  }
+
   // Called by the ‹ › arrow buttons — peek adjacent panel then snap back
   function animateArrow(dir) {
+    if (isModalOpen()) return;           // ← don't animate while modal is showing
     const wrap = document.getElementById('schedule-slide-wrap');
     if (!wrap) return;
     const peekPx = wrap.clientWidth * 0.55 * -dir; // peek ~55% across
@@ -456,7 +463,7 @@ const UI = (() => {
     let dragging = false, locked = false;
 
     wrap.addEventListener('touchstart', e => {
-      if (document.querySelector('.modal-overlay.open')) return;
+      if (isModalOpen()) return;
       if (e.target.closest('select,input,textarea,button')) return;
       startX    = e.touches[0].clientX;
       startY    = e.touches[0].clientY;
