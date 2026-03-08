@@ -226,32 +226,7 @@
       <input type="hidden" id="task-editor-id" />
 
       <label class="field-label">Time</label>
-      <div class="time-picker-row">
-        <div class="time-spinner-group">
-          <label class="time-picker-label">Hour</label>
-          <div class="time-spinner" id="spinner-hour">
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('hour',1)">▲</button>
-            <div class="spinner-val" id="task-time-hour">9</div>
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('hour',-1)">▼</button>
-          </div>
-        </div>
-        <div class="time-spinner-group">
-          <label class="time-picker-label">Min</label>
-          <div class="time-spinner" id="spinner-min">
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('min',1)">▲</button>
-            <div class="spinner-val" id="task-time-min">00</div>
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('min',-1)">▼</button>
-          </div>
-        </div>
-        <div class="time-spinner-group">
-          <label class="time-picker-label">AM / PM</label>
-          <div class="time-spinner" id="spinner-ampm">
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('ampm',1)">▲</button>
-            <div class="spinner-val" id="task-time-ampm">AM</div>
-            <button type="button" class="spinner-btn" onclick="UI.spinTime('ampm',-1)">▼</button>
-          </div>
-        </div>
-      </div>
+      <input type="time" class="field-input" id="task-editor-time" />
 
       <label class="field-label">Task title</label>
       <input type="text" class="field-input" id="task-editor-label" placeholder="e.g. Nova's potty break" />

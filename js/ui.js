@@ -230,33 +230,26 @@ const UI = (() => {
 
   // ── Task editor modal ─────────────────────────────
 
-  // ── Time spinner ──────────────────────────────────
-  const HOURS = ['1','2','3','4','5','6','7','8','9','10','11','12'];
-  const MINS  = ['00','15','30','45'];
-  const AMPM  = ['AM','PM'];
-
-  function spinTime(field, dir) {
-    const el = document.getElementById(`task-time-${field}`);
-    const current = el.textContent.trim();
-    let list, idx;
-    if (field === 'hour') { list = HOURS; idx = HOURS.indexOf(current); }
-    if (field === 'min')  { list = MINS;  idx = MINS.indexOf(current); }
-    if (field === 'ampm') { list = AMPM;  idx = AMPM.indexOf(current); }
-    el.textContent = list[(idx + dir + list.length) % list.length];
+  function setTimeSpinners(timeStr) {
+    // Convert "9:00 AM" / "2:30 PM" → "09:00" / "14:30" for input[type=time]
+    const tm = timeStr && timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!tm) { document.getElementById('task-editor-time').value = '09:00'; return; }
+    let h = parseInt(tm[1]);
+    const m = tm[2];
+    const ampm = tm[3].toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    document.getElementById('task-editor-time').value = `${String(h).padStart(2,'0')}:${m}`;
   }
 
   function getTimeFromSpinners() {
-    const h    = document.getElementById('task-time-hour').textContent.trim();
-    const m    = document.getElementById('task-time-min').textContent.trim();
-    const ampm = document.getElementById('task-time-ampm').textContent.trim();
-    return `${h}:${m} ${ampm}`;
-  }
-
-  function setTimeSpinners(timeStr) {
-    const tm = timeStr && timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    document.getElementById('task-time-hour').textContent = tm ? String(parseInt(tm[1])) : '9';
-    document.getElementById('task-time-min').textContent  = tm ? tm[2].padStart(2,'0')  : '00';
-    document.getElementById('task-time-ampm').textContent = tm ? tm[3].toUpperCase()    : 'AM';
+    // Convert "14:30" → "2:30 PM"
+    const val = document.getElementById('task-editor-time').value;
+    if (!val) return '9:00 AM';
+    const [h24, m] = val.split(':').map(Number);
+    const ampm = h24 >= 12 ? 'PM' : 'AM';
+    const h12  = h24 % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   }
 
   function openTaskEditor(task) {
@@ -367,7 +360,7 @@ const UI = (() => {
     showSetup,
     showApp,
     getNoteInput,
-    spinTime,
+    spinTime: () => {},
     getTimeFromSpinners,
   };
 

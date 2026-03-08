@@ -875,58 +875,9 @@ body.modal-open {
   .modal-task-editor  { max-height: 98vh; }
 }
 
-/* Time picker row */
-.time-picker-row {
-  display: flex;
-  gap: 0.6rem;
-}
-.time-spinner-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.time-picker-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: center;
-}
-.time-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--cream);
-  border: 1.5px solid var(--sand);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.spinner-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 0.45rem 0;
-  font-size: 0.7rem;
-  color: var(--forest);
-  cursor: pointer;
-  line-height: 1;
-  transition: background 0.1s;
-}
-.spinner-btn:active { background: var(--sand); }
-.spinner-val {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--midnight);
-  padding: 0.2rem 0;
-  min-width: 2.5rem;
-  text-align: center;
-  border-top: 1px solid var(--sand);
-  border-bottom: 1px solid var(--sand);
-  width: 100%;
-}
+/* Time picker */
+.time-picker-row { display: flex; gap: 0.6rem; }
+input[type="time"].field-input { cursor: pointer; }
 
 /* Even spacing between Type → Save and Delete → bottom */
 .modal-actions {
