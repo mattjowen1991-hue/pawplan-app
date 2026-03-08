@@ -259,14 +259,16 @@ const UI = (() => {
     history.pushState({ modal: true }, '');
   }
 
-  function handlePopState() {
-    // If a modal is open, close it — don't navigate away
+  function handlePopState(e) {
     const taskModal = document.getElementById('task-editor-modal');
     const noteModal = document.getElementById('note-modal');
     if (taskModal && taskModal.classList.contains('open')) {
       closeTaskEditor();
+      // Re-push base so back never bottoms out the stack
+      history.replaceState({ base: true }, '');
     } else if (noteModal && noteModal.classList.contains('open')) {
       closeModal();
+      history.replaceState({ base: true }, '');
     }
   }
 

@@ -64,6 +64,13 @@ const App = (() => {
   }
 
   async function init() {
+    // Push a base history entry so the back gesture never hits the bottom
+    // of the stack and closes the PWA. The popstate handler in ui.js catches
+    // any subsequent back gestures and closes modals instead.
+    if (!history.state || !history.state.base) {
+      history.replaceState({ base: true }, '');
+    }
+
     const stored = localStorage.getItem('pawplan_config');
     if (stored) {
       try {
