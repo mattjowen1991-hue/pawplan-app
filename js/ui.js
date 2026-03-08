@@ -79,9 +79,14 @@ const UI = (() => {
 
       sectionItems.forEach(item => {
         const completed = !!tasksMap[item.id];
+        const typeColours = {
+          work: 'var(--forest)', nova: 'var(--terracotta)',
+          feeding: 'var(--gold)', break: 'var(--forest-light)', school: 'var(--lavender)'
+        };
+        const colour = typeColours[item.type] || 'var(--sand-dark)';
         html += `
           <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}"
-               id="item-${item.id}" data-id="${item.id}">
+               id="item-${item.id}" data-id="${item.id}" style="--task-colour:${colour}">
             <div class="schedule-item-inner" onclick="App.toggleTask('${item.id}')">
               <div class="item-check">${checkSvg()}</div>
               <div class="item-content">
@@ -369,59 +374,72 @@ const UI = (() => {
 
   // ── Swipe to change day ───────────────────────────
   function initSwipe() {
-    const el = document.getElementById('app-root') || document.body;
+    const el = document.body;
     let startX = 0, startY = 0, startTime = 0, tracking = false;
-
-    // Overlay that shows the sliding animation
-    const overlay = document.createElement('div');
-    overlay.className = 'swipe-overlay';
-    document.body.appendChild(overlay);
+    let panel = null;
 
     el.addEventListener('touchstart', e => {
-      // Don't swipe if modal is open or touch started on a form element
       if (document.querySelector('.modal-overlay.open')) return;
       if (e.target.closest('select,input,textarea,button')) return;
-      startX    = e.touches[0].clientX;
-      startY    = e.touches[0].clientY;
+      startX   = e.touches[0].clientX;
+      startY   = e.touches[0].clientY;
       startTime = Date.now();
-      tracking  = true;
+      tracking = true;
+      panel    = document.getElementById('schedule-panel');
     }, { passive: true });
 
     el.addEventListener('touchmove', e => {
-      if (!tracking) return;
+      if (!tracking || !panel) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
-      // Only show swipe hint if clearly horizontal
-      if (Math.abs(dx) > 20 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        const progress = Math.min(Math.abs(dx) / 120, 1);
-        overlay.style.opacity = progress * 0.35 + '';
-        overlay.style.transform = `translateX(${dx > 0 ? -40 : 40}px) scale(${0.97 - progress * 0.03})`;
-        overlay.classList.add('active');
-      }
+      // Only track clearly horizontal swipes
+      if (Math.abs(dy) > Math.abs(dx) * 0.7) return;
+      // Dampen the drag — it moves less than finger so it feels like resistance
+      const drag = dx * 0.45;
+      panel.style.transform  = `translateX(${drag}px)`;
+      panel.style.transition = 'none';
     }, { passive: true });
 
     el.addEventListener('touchend', e => {
-      overlay.classList.remove('active');
-      overlay.style.opacity = '0';
-      overlay.style.transform = '';
-      if (!tracking) return;
+      if (!tracking || !panel) return;
       tracking = false;
 
       const dx      = e.changedTouches[0].clientX - startX;
       const dy      = e.changedTouches[0].clientY - startY;
       const elapsed = Date.now() - startTime;
 
-      if (elapsed > 400) return;
-      if (Math.abs(dy) > Math.abs(dx) * 0.6) return;
-      if (Math.abs(dx) < 55) return;
+      const isSwipe = elapsed < 400 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.3;
 
-      haptic('light');
-      App.changeDay(dx < 0 ? 1 : -1);
+      if (isSwipe) {
+        const dir = dx < 0 ? 1 : -1;
+        // Fly the current panel off-screen
+        panel.style.transition = 'transform 0.22s ease-in';
+        panel.style.transform  = `translateX(${dir * -110}%)`;
+        haptic('light');
+        setTimeout(() => {
+          // Reset panel off the other side before data loads
+          panel.style.transition = 'none';
+          panel.style.transform  = `translateX(${dir * 110}%)`;
+          App.changeDay(-dir * -1).then ? App.changeDay(-dir * -1) : App.changeDay(-dir * -1);
+          // Slide in
+          requestAnimationFrame(() => {
+            panel.style.transition = 'transform 0.22s ease-out';
+            panel.style.transform  = 'translateX(0)';
+          });
+        }, 200);
+      } else {
+        // Snap back
+        panel.style.transition = 'transform 0.2s ease-out';
+        panel.style.transform  = 'translateX(0)';
+      }
     }, { passive: true });
 
     el.addEventListener('touchcancel', () => {
       tracking = false;
-      overlay.classList.remove('active');
+      if (panel) {
+        panel.style.transition = 'transform 0.2s ease-out';
+        panel.style.transform  = 'translateX(0)';
+      }
     }, { passive: true });
   }
 

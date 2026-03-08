@@ -775,7 +775,7 @@ body {
    TASK EDITOR & EDIT BUTTONS
 ══════════════════════════════════════════════════ */
 
-/* Long-press progress bar */
+/* Long-press progress bar — uses task category colour */
 .long-press-bar {
   height: 3px;
   background: transparent;
@@ -785,19 +785,19 @@ body {
 .long-press-bar-fill {
   height: 100%;
   width: 0%;
-  background: var(--forest);
+  background: var(--task-colour, var(--forest));
   transition: none;
 }
 .schedule-item.long-pressing .long-press-bar {
-  background: var(--sand);
+  background: rgba(0,0,0,0.06);
 }
 .schedule-item.long-pressing .long-press-bar-fill {
   width: 100%;
   transition: width 600ms linear;
 }
 @keyframes long-press-done {
-  0%   { background: var(--forest-light); }
-  100% { background: white; }
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 .schedule-item.long-press-done {
   animation: long-press-done 0.4s ease-out;
@@ -805,16 +805,13 @@ body {
 /* Prevent text selection during long press */
 .schedule-item { -webkit-user-select: none; user-select: none; }
 
-/* Swipe day overlay */
-.swipe-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--forest);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 50;
-  transition: opacity 0.1s, transform 0.1s;
-  border-radius: 0;
+/* ── Day swipe slide panel ─────────────────────────── */
+.schedule-slide-wrap {
+  overflow: hidden;   /* clips the panel as it flies off screen */
+}
+.schedule-slide-panel {
+  will-change: transform;
+  transform: translateX(0);
 }
 
 /* FAB group — two buttons stacked */
