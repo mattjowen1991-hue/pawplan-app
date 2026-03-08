@@ -290,22 +290,26 @@ const UI = (() => {
   }
 
   // ── Android back gesture handler ─────────────────
-  // Push a history entry when any modal opens so the back gesture
-  // closes the modal instead of exiting the PWA
+  // Uses location.hash instead of pushState — hash changes do NOT trigger
+  // native page-slide animations on Android Chrome or iOS Safari, but DO
+  // fire hashchange/popstate so we can intercept the hardware back button.
+
   function pushModalHistory() {
-    history.pushState({ modal: true }, '');
+    // Only push if we're not already in a modal state
+    if (location.hash !== '#modal') {
+      history.pushState({ modal: true }, '', '#modal');
+    }
   }
 
   function handlePopState(e) {
+    // Only act if navigating away from the modal hash (back gesture / back button)
+    if (location.hash === '#modal') return; // going forward somehow, ignore
     const taskModal = document.getElementById('task-editor-modal');
     const noteModal = document.getElementById('note-modal');
     if (taskModal && taskModal.classList.contains('open')) {
       closeTaskEditor();
-      // Re-push base so back never bottoms out the stack
-      history.replaceState({ base: true }, '');
     } else if (noteModal && noteModal.classList.contains('open')) {
       closeModal();
-      history.replaceState({ base: true }, '');
     }
   }
 
@@ -337,12 +341,12 @@ const UI = (() => {
   function closeTaskEditor() {
     document.getElementById('task-editor-modal').classList.remove('open');
     document.body.classList.remove('modal-open');
+    if (location.hash === '#modal') history.replaceState(null, '', ' ');
   }
 
   function handleTaskEditorOverlay(event) {
     if (event.target === event.currentTarget) {
       closeTaskEditor();
-      history.replaceState({ base: true }, '');
     }
   }
 
@@ -365,12 +369,12 @@ const UI = (() => {
     document.body.classList.remove('modal-open');
     const t = document.getElementById('modal-note-text');
     if (t) t.value = '';
+    if (location.hash === '#modal') history.replaceState(null, '', ' ');
   }
 
   function handleModalOverlayClick(event) {
     if (event.target === event.currentTarget) {
       closeModal();
-      history.replaceState({ base: true }, '');
     }
   }
 
