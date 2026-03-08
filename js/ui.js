@@ -228,9 +228,11 @@ const UI = (() => {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
 
-    if (tabId === 'stats') {
-      App.loadAndRenderStats();
-    }
+    // Show/hide the carousel alongside the schedule tab
+    const carousel = document.getElementById('schedule-slide-wrap');
+    if (carousel) carousel.style.display = tabId === 'schedule' ? '' : 'none';
+
+    if (tabId === 'stats') App.loadAndRenderStats();
   }
 
   // ── Settings ──────────────────────────────────────

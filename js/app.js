@@ -50,10 +50,17 @@ const App = (() => {
 
     const { ok, message } = await DB.testConnection();
     if (!ok) {
-      // Clear bad config so user isn't stuck in a loop
-      localStorage.removeItem('pawplan_config');
-      alert(`Couldn't connect to Supabase.\n\n${message}\n\nPlease re-enter your details.`);
+      // Don't delete config — network might just be slow or offline
+      // Show setup so user can re-enter if they want, but keep stored config
+      alert(`Couldn't connect to Supabase.\n\n${message}\n\nCheck your connection and try again.`);
       UI.showSetup();
+      // Pre-fill the fields so they don't have to retype everything
+      const uEl = document.getElementById('setup-username');
+      const urlEl = document.getElementById('setup-url');
+      const keyEl = document.getElementById('setup-key');
+      if (uEl) uEl.value = cfg.username;
+      if (urlEl) urlEl.value = cfg.url;
+      if (keyEl) keyEl.value = cfg.key;
       return;
     }
 
