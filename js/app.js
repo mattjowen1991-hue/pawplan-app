@@ -106,6 +106,7 @@ const App = (() => {
   // ── Day navigation ────────────────────────────────
 
   async function changeDay(dir) {
+    UI.haptic('light');
     dayOffset += dir;
     const dateStr = getDateStr();
     await _loadAndRender(dateStr);
@@ -117,6 +118,8 @@ const App = (() => {
     const dateStr  = getDateStr();
     const current  = !!(tasksCache[dateStr] && tasksCache[dateStr][itemId]);
     const newValue = !current;
+
+    UI.haptic(newValue ? 'success' : 'light');
 
     // Optimistic update
     if (!tasksCache[dateStr]) tasksCache[dateStr] = {};

@@ -78,24 +78,19 @@ const UI = (() => {
         <div class="section-label">${section.label}</div>`;
 
       sectionItems.forEach(item => {
-        const completed  = !!tasksMap[item.id];
-        const isCustom   = !!(item._isNew || item._override);
+        const completed = !!tasksMap[item.id];
         html += `
-          <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}" id="item-${item.id}">
-            <div class="schedule-item-inner" onclick="App.toggleTask('${item.id}')">
-              <div class="item-check">${checkSvg()}</div>
-              <div class="item-content">
-                <div class="item-time">${escHtml(item.time)}</div>
-                <div class="item-title">${escHtml(item.title)}</div>
-                <div class="item-desc">${escHtml(item.desc || '')}</div>
-                ${badgeHtml(item.badge)}
-              </div>
-              <div class="item-emoji">${item.emoji || '📌'}</div>
+          <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}" id="item-${item.id}"
+               data-id="${item.id}"
+               onclick="App.toggleTask('${item.id}')">
+            <div class="item-check">${checkSvg()}</div>
+            <div class="item-content">
+              <div class="item-time">${escHtml(item.time)}</div>
+              <div class="item-title">${escHtml(item.title)}</div>
+              <div class="item-desc">${escHtml(item.desc || '')}</div>
+              ${badgeHtml(item.badge)}
             </div>
-            <div class="item-actions">
-              <button class="item-edit-btn" onclick="App.openTaskEditor('${item.id}')" title="Edit task">✏️</button>
-              ${isCustom ? `<button class="item-delete-btn" onclick="App.deleteCustomTask('${item.id}')" title="Delete task">🗑️</button>` : ''}
-            </div>
+            <div class="item-emoji">${item.emoji || '📌'}</div>
           </div>`;
       });
 
@@ -363,6 +358,77 @@ const UI = (() => {
     };
   }
 
+  // ── Haptics ───────────────────────────────────────
+  function haptic(type = 'light') {
+    if (!navigator.vibrate) return;
+    const patterns = { light: [10], medium: [20], heavy: [30], success: [10, 50, 10] };
+    navigator.vibrate(patterns[type] || [10]);
+  }
+
+  // ── Swipe to change day ───────────────────────────
+  function initSwipe() {
+    const content = document.getElementById('tab-schedule');
+    let startX = 0, startY = 0, startTime = 0;
+
+    content.addEventListener('touchstart', e => {
+      startX    = e.touches[0].clientX;
+      startY    = e.touches[0].clientY;
+      startTime = Date.now();
+    }, { passive: true });
+
+    content.addEventListener('touchend', e => {
+      // Ignore if a modal is open
+      if (document.querySelector('.modal-overlay.open')) return;
+
+      const dx      = e.changedTouches[0].clientX - startX;
+      const dy      = e.changedTouches[0].clientY - startY;
+      const elapsed = Date.now() - startTime;
+
+      // Must be fast (<350ms), mostly horizontal, and >60px
+      if (elapsed > 350) return;
+      if (Math.abs(dy) > Math.abs(dx)) return;
+      if (Math.abs(dx) < 60) return;
+
+      haptic('light');
+      App.changeDay(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  }
+
+  // ── Long-press to edit task ───────────────────────
+  function initLongPress() {
+    let timer = null;
+    let moved = false;
+
+    document.addEventListener('touchstart', e => {
+      const item = e.target.closest('.schedule-item[data-id]');
+      if (!item) return;
+      moved = false;
+
+      timer = setTimeout(() => {
+        if (moved) return;
+        haptic('heavy');
+        // Visual pulse feedback
+        item.classList.add('long-press-active');
+        setTimeout(() => item.classList.remove('long-press-active'), 600);
+        App.openTaskEditor(item.dataset.id);
+      }, 600);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', () => {
+      moved = true;
+      clearTimeout(timer);
+    }, { passive: true });
+
+    document.addEventListener('touchend',   () => clearTimeout(timer), { passive: true });
+    document.addEventListener('touchcancel',() => clearTimeout(timer), { passive: true });
+  }
+
+  // Initialise on DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    initSwipe();
+    initLongPress();
+  });
+
   return {
     renderHeader,
     renderSchedule,
@@ -383,6 +449,7 @@ const UI = (() => {
     getNoteInput,
     spinTime: () => {},
     getTimeFromSpinners,
+    haptic,
   };
 
 })();
