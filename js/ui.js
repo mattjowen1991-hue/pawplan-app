@@ -231,25 +231,17 @@ const UI = (() => {
   // ── Task editor modal ─────────────────────────────
 
   function setTimeSpinners(timeStr) {
-    // Convert "9:00 AM" / "2:30 PM" → "09:00" / "14:30" for input[type=time]
     const tm = timeStr && timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!tm) { document.getElementById('task-editor-time').value = '09:00'; return; }
-    let h = parseInt(tm[1]);
-    const m = tm[2];
-    const ampm = tm[3].toUpperCase();
-    if (ampm === 'PM' && h !== 12) h += 12;
-    if (ampm === 'AM' && h === 12) h = 0;
-    document.getElementById('task-editor-time').value = `${String(h).padStart(2,'0')}:${m}`;
+    document.getElementById('task-time-hour').value = tm ? String(parseInt(tm[1])) : '9';
+    document.getElementById('task-time-min').value  = tm ? tm[2].padStart(2,'0')  : '00';
+    document.getElementById('task-time-ampm').value = tm ? tm[3].toUpperCase()    : 'AM';
   }
 
   function getTimeFromSpinners() {
-    // Convert "14:30" → "2:30 PM"
-    const val = document.getElementById('task-editor-time').value;
-    if (!val) return '9:00 AM';
-    const [h24, m] = val.split(':').map(Number);
-    const ampm = h24 >= 12 ? 'PM' : 'AM';
-    const h12  = h24 % 12 || 12;
-    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+    const h    = document.getElementById('task-time-hour').value;
+    const m    = document.getElementById('task-time-min').value;
+    const ampm = document.getElementById('task-time-ampm').value;
+    return `${h}:${m} ${ampm}`;
   }
 
   // ── Android back gesture handler ─────────────────

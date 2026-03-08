@@ -226,7 +226,21 @@
       <input type="hidden" id="task-editor-id" />
 
       <label class="field-label">Time</label>
-      <input type="time" class="field-input" id="task-editor-time" />
+      <div class="time-inline">
+        <select class="time-seg" id="task-time-hour">
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+          <option>9</option><option>10</option><option>11</option><option>12</option>
+        </select>
+        <span class="time-colon">:</span>
+        <select class="time-seg" id="task-time-min">
+          <option value="00">00</option><option value="15">15</option>
+          <option value="30">30</option><option value="45">45</option>
+        </select>
+        <select class="time-seg time-seg-ampm" id="task-time-ampm">
+          <option>AM</option><option>PM</option>
+        </select>
+      </div>
 
       <label class="field-label">Task title</label>
       <input type="text" class="field-input" id="task-editor-label" placeholder="e.g. Nova's potty break" />

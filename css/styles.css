@@ -874,9 +874,34 @@ body.modal-open {
   .modal-task-editor  { max-height: 98vh; }
 }
 
-/* Time picker */
-.time-picker-row { display: flex; gap: 0.6rem; }
-input[type="time"].field-input { cursor: pointer; }
+/* Inline time picker — no popups, no system dialogs */
+.time-inline {
+  display: flex;
+  align-items: center;
+  background: var(--cream);
+  border: 1.5px solid var(--sand);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 48px;
+}
+.time-seg {
+  flex: 1;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--midnight);
+  padding: 0;
+  height: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.time-seg:focus { outline: none; background: rgba(61,90,76,0.07); }
+.time-seg-ampm  { flex: 0.8; border-left: 1.5px solid var(--sand); }
+.time-colon     { font-size: 1.1rem; font-weight: 700; color: var(--muted); padding: 0 2px; }
 
 /* Even spacing between Type → Save and Delete → bottom */
 .modal-actions {
