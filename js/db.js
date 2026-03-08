@@ -256,6 +256,23 @@ const DB = (() => {
     }
   }
 
+  // ── Push subscriptions ────────────────────────────
+
+  async function savePushSubscription(sub) {
+    if (!client || !currentUser) return;
+    const json = sub.toJSON();
+    try {
+      await client.from('push_subscriptions').upsert({
+        user_id:  currentUser.id,
+        endpoint: json.endpoint,
+        p256dh:   json.keys.p256dh,
+        auth:     json.keys.auth,
+      }, { onConflict: 'endpoint' });
+    } catch (e) {
+      console.warn('[DB] savePushSubscription error:', e.message);
+    }
+  }
+
   return {
     init,
     signUp,
@@ -272,6 +289,7 @@ const DB = (() => {
     saveCustomTask,
     deleteCustomTask,
     loadCustomTasks,
+    savePushSubscription,
   };
 
 })();

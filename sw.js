@@ -3,7 +3,7 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v48';
+const CACHE_NAME = 'pawplan-v49';
 const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
 // ── Install: cache index.html immediately, skip waiting ───
@@ -81,5 +81,34 @@ self.addEventListener('fetch', event => {
         });
       })
     )
+  );
+});
+
+// ── Push notifications ──────────────────────────────
+self.addEventListener('push', event => {
+  const data = event.data?.json() || {};
+  const title = data.title || 'PawPlan';
+  const body  = data.body  || 'You have a task coming up!';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:  '/pawplan-app/assets/icon-192.png',
+      badge: '/pawplan-app/assets/icon-192.png',
+      tag:   data.tag || 'pawplan-reminder',
+      renotify: true,
+      data: { url: 'https://mattjowen1991-hue.github.io/pawplan-app/' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const client of list) {
+        if (client.url.includes('pawplan-app') && 'focus' in client) return client.focus();
+      }
+      return clients.openWindow('https://mattjowen1991-hue.github.io/pawplan-app/');
+    })
   );
 });

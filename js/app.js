@@ -27,12 +27,40 @@ const App = (() => {
     }
   }
 
+  const VAPID_PUBLIC_KEY = 'BNuhtt5j1hz4xSahlZ2KMGOLmZCuAZcdHwR0b4FTyMg8fYix7WghI_8ldeUahvE0FhX3357RJVAsZDDE-LD2xbM';
+
+  function _urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw     = window.atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  async function _subscribeToPush() {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      const reg = await navigator.serviceWorker.ready;
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+      await DB.savePushSubscription(sub);
+      console.log('[Push] Subscribed ✅');
+    } catch (e) {
+      console.warn('[Push] Subscribe failed:', e.message);
+    }
+  }
+
   // ── Boot sequence ─────────────────────────────────
 
   async function _enterApp(user) {
     UI.showApp(DB.getUsername());
     await _loadAndRender(getDateStr());
     UI.hideLoading();
+    // Request push permission after app loads — don't block boot
+    setTimeout(_subscribeToPush, 2000);
   }
 
   async function init() {
