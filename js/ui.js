@@ -80,17 +80,19 @@ const UI = (() => {
       sectionItems.forEach(item => {
         const completed = !!tasksMap[item.id];
         html += `
-          <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}" id="item-${item.id}"
-               data-id="${item.id}"
-               onclick="App.toggleTask('${item.id}')">
-            <div class="item-check">${checkSvg()}</div>
-            <div class="item-content">
-              <div class="item-time">${escHtml(item.time)}</div>
-              <div class="item-title">${escHtml(item.title)}</div>
-              <div class="item-desc">${escHtml(item.desc || '')}</div>
-              ${badgeHtml(item.badge)}
+          <div class="schedule-item type-${item.type} ${completed ? 'completed' : ''}"
+               id="item-${item.id}" data-id="${item.id}">
+            <div class="schedule-item-inner" onclick="App.toggleTask('${item.id}')">
+              <div class="item-check">${checkSvg()}</div>
+              <div class="item-content">
+                <div class="item-time">${escHtml(item.time)}</div>
+                <div class="item-title">${escHtml(item.title)}</div>
+                <div class="item-desc">${escHtml(item.desc || '')}</div>
+                ${badgeHtml(item.badge)}
+              </div>
+              <div class="item-emoji">${item.emoji || '📌'}</div>
             </div>
-            <div class="item-emoji">${item.emoji || '📌'}</div>
+            <div class="long-press-bar"><div class="long-press-bar-fill"></div></div>
           </div>`;
       });
 
@@ -367,63 +369,112 @@ const UI = (() => {
 
   // ── Swipe to change day ───────────────────────────
   function initSwipe() {
-    const content = document.getElementById('tab-schedule');
-    let startX = 0, startY = 0, startTime = 0;
+    const el = document.getElementById('app-root') || document.body;
+    let startX = 0, startY = 0, startTime = 0, tracking = false;
 
-    content.addEventListener('touchstart', e => {
+    // Overlay that shows the sliding animation
+    const overlay = document.createElement('div');
+    overlay.className = 'swipe-overlay';
+    document.body.appendChild(overlay);
+
+    el.addEventListener('touchstart', e => {
+      // Don't swipe if modal is open or touch started on a form element
+      if (document.querySelector('.modal-overlay.open')) return;
+      if (e.target.closest('select,input,textarea,button')) return;
       startX    = e.touches[0].clientX;
       startY    = e.touches[0].clientY;
       startTime = Date.now();
+      tracking  = true;
     }, { passive: true });
 
-    content.addEventListener('touchend', e => {
-      // Ignore if a modal is open
-      if (document.querySelector('.modal-overlay.open')) return;
+    el.addEventListener('touchmove', e => {
+      if (!tracking) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      // Only show swipe hint if clearly horizontal
+      if (Math.abs(dx) > 20 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        const progress = Math.min(Math.abs(dx) / 120, 1);
+        overlay.style.opacity = progress * 0.35 + '';
+        overlay.style.transform = `translateX(${dx > 0 ? -40 : 40}px) scale(${0.97 - progress * 0.03})`;
+        overlay.classList.add('active');
+      }
+    }, { passive: true });
+
+    el.addEventListener('touchend', e => {
+      overlay.classList.remove('active');
+      overlay.style.opacity = '0';
+      overlay.style.transform = '';
+      if (!tracking) return;
+      tracking = false;
 
       const dx      = e.changedTouches[0].clientX - startX;
       const dy      = e.changedTouches[0].clientY - startY;
       const elapsed = Date.now() - startTime;
 
-      // Must be fast (<350ms), mostly horizontal, and >60px
-      if (elapsed > 350) return;
-      if (Math.abs(dy) > Math.abs(dx)) return;
-      if (Math.abs(dx) < 60) return;
+      if (elapsed > 400) return;
+      if (Math.abs(dy) > Math.abs(dx) * 0.6) return;
+      if (Math.abs(dx) < 55) return;
 
       haptic('light');
       App.changeDay(dx < 0 ? 1 : -1);
     }, { passive: true });
+
+    el.addEventListener('touchcancel', () => {
+      tracking = false;
+      overlay.classList.remove('active');
+    }, { passive: true });
   }
 
   // ── Long-press to edit task ───────────────────────
+  const LONG_PRESS_MS = 600;
+
   function initLongPress() {
     let timer = null;
-    let moved = false;
+    let activeItem = null;
+    let startX = 0, startY = 0;
+
+    function cancel() {
+      clearTimeout(timer);
+      if (activeItem) {
+        activeItem.classList.remove('long-pressing');
+        activeItem = null;
+      }
+    }
 
     document.addEventListener('touchstart', e => {
       const item = e.target.closest('.schedule-item[data-id]');
       if (!item) return;
-      moved = false;
+
+      // Prevent text selection during long press
+      e.preventDefault();
+
+      activeItem = item;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      item.classList.add('long-pressing');
 
       timer = setTimeout(() => {
-        if (moved) return;
+        if (!activeItem) return;
         haptic('heavy');
-        // Visual pulse feedback
-        item.classList.add('long-press-active');
-        setTimeout(() => item.classList.remove('long-press-active'), 600);
+        item.classList.remove('long-pressing');
+        item.classList.add('long-press-done');
+        setTimeout(() => item.classList.remove('long-press-done'), 400);
+        activeItem = null;
         App.openTaskEditor(item.dataset.id);
-      }, 600);
+      }, LONG_PRESS_MS);
+    }, { passive: false }); // passive:false so we can preventDefault
+
+    document.addEventListener('touchmove', e => {
+      if (!activeItem) return;
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 10 || dy > 10) cancel();
     }, { passive: true });
 
-    document.addEventListener('touchmove', () => {
-      moved = true;
-      clearTimeout(timer);
-    }, { passive: true });
-
-    document.addEventListener('touchend',   () => clearTimeout(timer), { passive: true });
-    document.addEventListener('touchcancel',() => clearTimeout(timer), { passive: true });
+    document.addEventListener('touchend',    cancel, { passive: true });
+    document.addEventListener('touchcancel', cancel, { passive: true });
   }
 
-  // Initialise on DOM ready
   document.addEventListener('DOMContentLoaded', () => {
     initSwipe();
     initLongPress();
