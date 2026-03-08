@@ -236,10 +236,9 @@ body {
   max-width: 600px;
   margin: 0 auto;
 }
-/* Schedule header block — tight top, zero bottom so carousel is flush */
+/* Schedule header: tight padding, NO bottom padding — carousel must sit flush */
 .content-schedule {
-  padding-top: 0.5rem;
-  padding-bottom: 0;
+  padding: 0.5rem 1.25rem 0 !important;
 }
 /* Other tabs content block */
 .content-tabs {
@@ -736,6 +735,7 @@ body {
 @media (display-mode: standalone) {
   body { background: var(--forest); }
   .content { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  .content-schedule { padding-bottom: 0 !important; }
 }
 
 /* Offline banner */
@@ -810,9 +810,9 @@ body {
 .schedule-item { -webkit-user-select: none; user-select: none; }
 
 /* ── Day swipe carousel ────────────────────────────── */
-/* Sits outside .content so it naturally spans full viewport width */
 .schedule-slide-wrap {
-  overflow: hidden;
+  overflow-x: hidden;  /* clip horizontal only — keeps bottom padding visible */
+  overflow-y: visible;
   width: 100%;
 }
 .carousel-track {
