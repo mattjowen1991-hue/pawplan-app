@@ -868,9 +868,6 @@ body {
   box-sizing: border-box;
   align-self: flex-start;
 }
-/* 8px green gap between panels so you can see the day changing */
-.carousel-panel:first-child { padding-right: calc(1.25rem + 8px); }
-.carousel-panel:last-child  { padding-left:  calc(1.25rem + 8px); }
 
 /* Space after last task card — above the bottom nav bar */
 #schedule-list {
