@@ -236,11 +236,12 @@ body {
   max-width: 600px;
   margin: 0 auto;
 }
-/* Schedule header block — no bottom padding, carousel sits flush below */
+/* Schedule header block — tight top, zero bottom so carousel is flush */
 .content-schedule {
-  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0;
 }
-/* Other tabs content block — no top padding, sits flush below header */
+/* Other tabs content block */
 .content-tabs {
   padding-top: 0.75rem;
 }
@@ -253,8 +254,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.1rem;
-  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0;
 }
 .day-nav-btn {
   background: white;
@@ -293,7 +294,7 @@ body {
 }
 
 /* ── Progress ── */
-.progress-wrap    { margin-bottom: 1.1rem; }
+.progress-wrap    { margin-bottom: 0.5rem; }
 .progress-bar-bg  { background: var(--sand); border-radius: 99px; height: 6px; overflow: hidden; }
 .progress-bar-fill {
   height: 100%;
@@ -813,7 +814,6 @@ body {
 .schedule-slide-wrap {
   overflow: hidden;
   width: 100%;
-  padding-bottom: 6rem; /* space above bottom nav */
 }
 .carousel-track {
   display: flex;
@@ -826,7 +826,7 @@ body {
   width: calc(100% / 3);
   flex-shrink: 0;
   min-width: 0;
-  padding: 0 1.25rem;
+  padding: 0 1.25rem 6rem;  /* bottom padding creates space above nav bar */
   box-sizing: border-box;
   align-self: flex-start;
 }
