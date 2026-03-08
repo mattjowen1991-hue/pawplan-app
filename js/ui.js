@@ -290,25 +290,23 @@ const UI = (() => {
   }
 
   // ── Android back button/gesture handler ──────────
-  // Strategy: use replaceState (NOT pushState) to tag the current history
-  // entry as "modal open". This means:
-  // - There is NO new history entry, so Chrome has nowhere to slide back to
-  //   → no page-slide animation
-  // - popstate still fires when the user presses back, because Chrome
-  //   detects the state change and fires the event
-  // - We catch popstate, close the modal, and replaceState back to base
-  //   so the app stays in place
+  // On init, app.js pushes a sentinel history entry so there's always
+  // something behind the current state for back to go to.
+  // When popstate fires:
+  //   - If a modal is open → close it, re-push sentinel
+  //   - If no modal → re-push sentinel (prevents app exit)
+  // replaceState is used for modal state tagging so there's no extra
+  // entry for Chrome to slide back through with animation.
 
   function markModalOpen() {
-    history.replaceState({ modal: true }, '');
+    history.replaceState({ pawplan: 'modal' }, '');
   }
 
   function markModalClosed() {
-    history.replaceState({ base: true }, '');
+    history.replaceState({ pawplan: 'app' }, '');
   }
 
-  window.addEventListener('popstate', e => {
-    // If we have a modal open and state says modal (or no state), close it
+  window.addEventListener('popstate', () => {
     const taskModal = document.getElementById('task-editor-modal');
     const noteModal = document.getElementById('note-modal');
     if (taskModal && taskModal.classList.contains('open')) {
@@ -316,6 +314,8 @@ const UI = (() => {
     } else if (noteModal && noteModal.classList.contains('open')) {
       closeModal();
     }
+    // Always re-push the sentinel so back never exits the app
+    history.pushState({ pawplan: 'app' }, '');
   });
 
   function openTaskEditor(task) {
