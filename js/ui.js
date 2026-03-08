@@ -470,9 +470,11 @@ const UI = (() => {
       }
 
       if (locked === 'h') {
+        // Prevent vertical scroll bleeding on iOS when swiping horizontally
+        e.preventDefault();
         setTrackPos(dx * 0.92, false);
       }
-    }, { passive: true });
+    }, { passive: false });
 
     wrap.addEventListener('touchend', e => {
       if (!dragging) return;
@@ -484,17 +486,11 @@ const UI = (() => {
       const isSwipe = Math.abs(dx) > 50 && elapsed < 400;
 
       if (isSwipe) {
-        // dx < 0 = swipe left = next day (+1); dx > 0 = swipe right = prev day (-1)
         const dir = dx < 0 ? 1 : -1;
-        // Snap to adjacent panel: offset by one panel width = wrap.clientWidth
-        setTrackPos(dir * -wrap.clientWidth, true);
         haptic('light');
-        setTimeout(() => {
-          // Update state — this re-renders centre + pre-renders new adjacent panels
-          App.changeDay(dir);
-          // Instantly reset to centre (no animation) so new content is in view
-          setTrackPos(0, false);
-        }, 280);
+        // Instantly reset track, then change day — no snap animation
+        setTrackPos(0, false);
+        App.changeDay(dir);
       } else {
         setTrackPos(0, true);
       }
