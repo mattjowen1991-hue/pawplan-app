@@ -132,6 +132,7 @@ const UI = (() => {
   function renderInlineNotes(notes, dateStr, currentUser) {
     const el    = document.getElementById('inline-notes-list');
     const count = document.getElementById('inline-note-count');
+    if (!el) return;  // inline notes panel removed — silently skip
 
     count.textContent = notes.length
       ? `${notes.length} note${notes.length !== 1 ? 's' : ''}`
@@ -315,16 +316,21 @@ const UI = (() => {
   // ── Modal ─────────────────────────────────────────
 
   function openModal() {
-    document.getElementById('note-modal').classList.add('open');
+    const m = document.getElementById('note-modal');
+    if (!m) return;
+    m.classList.add('open');
     document.body.classList.add('modal-open');
     pushModalHistory();
     setTimeout(() => document.getElementById('modal-note-text').focus(), 300);
   }
 
   function closeModal() {
-    document.getElementById('note-modal').classList.remove('open');
+    const m = document.getElementById('note-modal');
+    if (!m) return;
+    m.classList.remove('open');
     document.body.classList.remove('modal-open');
-    document.getElementById('modal-note-text').value = '';
+    const t = document.getElementById('modal-note-text');
+    if (t) t.value = '';
   }
 
   function handleModalOverlayClick(event) {

@@ -236,6 +236,10 @@ body {
   max-width: 600px;
   margin: 0 auto;
 }
+/* First content block only holds the schedule header — no bottom padding */
+.content-schedule {
+  padding-bottom: 0;
+}
 
 .tab-content          { display: none; }
 .tab-content.active   { display: block; animation: fadeIn 0.2s ease; }

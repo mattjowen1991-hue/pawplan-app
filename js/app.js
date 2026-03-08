@@ -45,23 +45,23 @@ const App = (() => {
 
   // ── Boot sequence ─────────────────────────────────
 
-  async function _boot(cfg) {
+  async function _boot(cfg, skipConnectionTest = false) {
     DB.init(cfg.url, cfg.key, cfg.username);
 
-    const { ok, message } = await DB.testConnection();
-    if (!ok) {
-      // Don't delete config — network might just be slow or offline
-      // Show setup so user can re-enter if they want, but keep stored config
-      alert(`Couldn't connect to Supabase.\n\n${message}\n\nCheck your connection and try again.`);
-      UI.showSetup();
-      // Pre-fill the fields so they don't have to retype everything
-      const uEl = document.getElementById('setup-username');
-      const urlEl = document.getElementById('setup-url');
-      const keyEl = document.getElementById('setup-key');
-      if (uEl) uEl.value = cfg.username;
-      if (urlEl) urlEl.value = cfg.url;
-      if (keyEl) keyEl.value = cfg.key;
-      return;
+    // Only test connection on first-time setup, not on every refresh
+    if (!skipConnectionTest) {
+      const { ok, message } = await DB.testConnection();
+      if (!ok) {
+        alert(`Couldn't connect to Supabase.\n\n${message}\n\nCheck your URL and Anon Key.`);
+        UI.showSetup();
+        const uEl   = document.getElementById('setup-username');
+        const urlEl = document.getElementById('setup-url');
+        const keyEl = document.getElementById('setup-key');
+        if (uEl)   uEl.value   = cfg.username;
+        if (urlEl) urlEl.value = cfg.url;
+        if (keyEl) keyEl.value = cfg.key;
+        return;
+      }
     }
 
     UI.showApp(cfg.username);
@@ -70,9 +70,6 @@ const App = (() => {
   }
 
   async function init() {
-    // Push a base history entry so the back gesture never hits the bottom
-    // of the stack and closes the PWA. The popstate handler in ui.js catches
-    // any subsequent back gestures and closes modals instead.
     if (!history.state || !history.state.base) {
       history.replaceState({ base: true }, '');
     }
@@ -80,7 +77,9 @@ const App = (() => {
     const stored = localStorage.getItem('pawplan_config');
     if (stored) {
       try {
-        await _boot(JSON.parse(stored));
+        // skipConnectionTest=true on refresh — go straight to the app
+        // If Supabase is unreachable the data load will just return empty/cached
+        await _boot(JSON.parse(stored), true);
       } catch (e) {
         console.error('[App] boot error', e);
         UI.showSetup();
