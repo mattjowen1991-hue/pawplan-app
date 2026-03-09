@@ -37,20 +37,36 @@ const App = (() => {
   }
 
   async function _subscribeToPush() {
+    const statusEl = document.getElementById('notif-status');
+    const btnEl    = document.getElementById('notif-btn');
     try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (statusEl) statusEl.textContent = 'Not supported';
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        if (statusEl) statusEl.textContent = '✗ Blocked';
+        return;
+      }
+      if (statusEl) statusEl.textContent = 'Subscribing…';
       const reg = await navigator.serviceWorker.ready;
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
       await DB.savePushSubscription(sub);
+      if (statusEl) statusEl.textContent = '✓ Active';
+      if (btnEl) btnEl.style.display = 'none';
       console.log('[Push] Subscribed ✅');
     } catch (e) {
+      if (statusEl) statusEl.textContent = '✗ Error: ' + e.message;
       console.warn('[Push] Subscribe failed:', e.message);
     }
+  }
+
+  async function enableNotifications() {
+    await _subscribeToPush();
   }
 
   // ── Boot sequence ─────────────────────────────────
@@ -359,6 +375,7 @@ const App = (() => {
     changeDay,
     goToToday,
     refreshCurrentDay,
+    enableNotifications,
     toggleTask,
     addNote,
     deleteNote,

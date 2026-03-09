@@ -647,6 +647,23 @@ body {
 }
 .btn-danger:hover { background: #FFEBEE; }
 
+.btn-secondary {
+  display: block;
+  width: 100%;
+  background: var(--forest);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: center;
+}
+.btn-secondary:hover { background: var(--forest-light); }
+
 /* ══════════════════════════════════════════════════
    FAB & MODAL
 ══════════════════════════════════════════════════ */

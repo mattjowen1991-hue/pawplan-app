@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <title>PawPlan · Nova & Gloria</title>
-  <link rel="stylesheet" href="css/styles.css?v=50" />
+  <link rel="stylesheet" href="css/styles.css?v=39" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -199,6 +199,8 @@
           <div class="settings-section-title">Reminders</div>
           <div class="settings-row"><label>Feeding reminders</label><div class="toggle on" onclick="UI.toggleSetting(this)"></div></div>
           <div class="settings-row"><label>Task reminders</label><div class="toggle" onclick="UI.toggleSetting(this)"></div></div>
+          <div class="settings-row"><label>Push notifications</label><span id="notif-status">Checking…</span></div>
+          <button class="btn-secondary" id="notif-btn" onclick="App.enableNotifications()" style="margin-top:0.5rem;width:100%;">Enable Notifications</button>
         </div>
         <div class="settings-section">
           <div class="settings-section-title">Schedule Options</div>
@@ -270,10 +272,10 @@
   </div>
 
   <!-- Scripts — order matters -->
-  <script src="js/schedule.js?v=50"></script>
-  <script src="js/db.js?v=50"></script>
-  <script src="js/ui.js?v=50"></script>
-  <script src="js/app.js?v=50"></script>
+  <script src="js/schedule.js?v=39"></script>
+  <script src="js/db.js?v=39"></script>
+  <script src="js/ui.js?v=39"></script>
+  <script src="js/app.js?v=39"></script>
 
   <!-- Register Service Worker for offline/PWA support -->
   <script>
