@@ -3,16 +3,14 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v49';
+const CACHE_NAME = 'pawplan-v50';
 const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
-// ── Install: cache index.html immediately, skip waiting ───
+// ── Install: skip waiting immediately, don't cache index.html ─
+// index.html is served by GitHub Pages with proper cache headers.
+// Caching it here causes stale version lockout across SW updates.
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.add('/pawplan-app/index.html'))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 // ── Activate: clear old APP caches only, keep CDN cache ───
