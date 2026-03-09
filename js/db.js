@@ -262,14 +262,18 @@ const DB = (() => {
     if (!client || !currentUser) return;
     const json = sub.toJSON();
     try {
-      await client.from('push_subscriptions').upsert({
+      // Delete any existing subscription for this endpoint first, then insert fresh
+      await client.from('push_subscriptions').delete().eq('endpoint', json.endpoint);
+      const { error } = await client.from('push_subscriptions').insert({
         user_id:  currentUser.id,
         endpoint: json.endpoint,
         p256dh:   json.keys.p256dh,
         auth:     json.keys.auth,
-      }, { onConflict: 'endpoint' });
+      });
+      if (error) throw error;
     } catch (e) {
       console.warn('[DB] savePushSubscription error:', e.message);
+      throw e; // re-throw so UI can show the error
     }
   }
 

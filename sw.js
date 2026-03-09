@@ -3,7 +3,7 @@
    Service Worker — network-first, HTML never cached
 ════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'pawplan-v51';
+const CACHE_NAME = 'pawplan-v52';
 const CDN_CACHE  = 'pawplan-cdn';   // separate, never wiped
 
 // ── Install: skip waiting immediately, don't cache index.html ─
