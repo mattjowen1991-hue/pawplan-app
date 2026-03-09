@@ -259,10 +259,15 @@ const DB = (() => {
   // ── Push subscriptions ────────────────────────────
 
   async function savePushSubscription(sub) {
-    if (!client || !currentUser) return;
+    if (!client) return;
+    // currentUser may be null if session was restored from token — fetch it fresh
+    if (!currentUser) {
+      const { data } = await client.auth.getSession();
+      if (data?.session?.user) currentUser = data.session.user;
+    }
+    if (!currentUser) throw new Error('Not logged in');
     const json = sub.toJSON();
     try {
-      // Delete any existing subscription for this endpoint first, then insert fresh
       await client.from('push_subscriptions').delete().eq('endpoint', json.endpoint);
       const { error } = await client.from('push_subscriptions').insert({
         user_id:  currentUser.id,
@@ -273,7 +278,7 @@ const DB = (() => {
       if (error) throw error;
     } catch (e) {
       console.warn('[DB] savePushSubscription error:', e.message);
-      throw e; // re-throw so UI can show the error
+      throw e;
     }
   }
 
